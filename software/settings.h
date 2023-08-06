@@ -35,18 +35,18 @@
 #define SPI_MOSI        19 // pin 25
 #define CAN_CLK_PIN     21 // pin 27
 
-#define MAIN_CAN_CS     17
-#define CHADEMO_CAN_CS  15
+#define MAIN_CAN_CS     17 // pin 22
+#define CHADEMO_CAN_CS  20 // pin 26
 
-#define CHARGE_INHIBIT_PIN 99
+#define CHARGE_INHIBIT_PIN 10 // pin 14
 
 // Chademo pins
-#define CHADEMO_IN1_PIN 99  // CP  - contactor +ve, (sensed by 'f'), d1 enable signal, chademo plug pin 2
-#define CHADEMO_IN2_PIN 99  // CP2 - contactor -ve, (sensed by 'g'), d2 enable signal, chademo plug pin 10
-#define CHADEMO_OUT1_PIN 99 // CP3 - charge enable, (switched by 'k'), chademo plug pin 4
-#define CHADEMO_OUT2_PIN 99 // contactor relay control, 'e'
+#define CHADEMO_IN1_PIN 14  // pin 19, CP  - contactor +ve, (sensed by 'f'), d1 enable signal, chademo plug pin 2
+#define CHADEMO_IN2_PIN 15  // pin 20, CP2 - contactor -ve, (sensed by 'g'), d2 enable signal, chademo plug pin 10
+#define CHADEMO_OUT1_PIN 12 // pin 16, CP3 - charge enable, (switched by 'k'), chademo plug pin 4
+#define CHADEMO_OUT2_PIN 13 // pin 17, contactor relay control, 'e'
 
-#define CHADEMO_CS_PIN 99   // CS - pilot wire, input, (a.k.a 'h'), pilot signal, chademo plug pin 7
+#define CHADEMO_CS_PIN 20   // pin 26, CS - pilot wire, input, (a.k.a 'h'), pilot signal, chademo plug pin 7
 
 // Version of ChaDeMo protocol to use. 1 == v0.9, 2 == v1.0
 #define CHADEMO_PROTOCOL_VERSION 1
