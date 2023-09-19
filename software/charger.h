@@ -20,21 +20,7 @@
 #ifndef CHARGER_H
 #define CHARGER_H
 
-#include "chademo.h"
-#include "util.h"
-#include "battery.h"
+#include <stdbool.h>
 
-class Charger {
-
-    private:
-        bool chargeInhibited;
-
-    public:
-        Chademo chademo;
-        Battery battery;
-
-        Charger();
-
-};
 
 #endif

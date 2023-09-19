@@ -17,77 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using namespace std;
 
-#include <string.h>
-#include <time.h>
 #include <stdio.h>
-#include "pico/stdlib.h"
-#include "hardware/spi.h"
-#include "hardware/uart.h"
-#include "hardware/gpio.h"
-#include "hardware/clocks.h"
+#include <stdint.h>
+
 #include "pico/cyw43_arch.h"
-#include "pico/stdlib.h"
-#include "lwip/pbuf.h"
-#include "lwip/tcp.h"
+#include "lwip/err.h"
+#include "picow_http/http.h"
+#include "lwip/init.h"
 
-extern "C" {
-    #include "led.h"
-    #include "battery.h"
-    #include "settings.h"
-    #include "chademo.h"
-    #include "chademostatemachine.h"
-    #include "dhcpserver.h"
-    #include "dnsserver.h"
-}
-
-#include "mcp2515/mcp2515.h"
-#include "comms.h"
-#include "chademocomms.h"
-
-#include "charger.h"
-
-#include "types.h"
-
-#define TCP_PORT 80
-#define POLL_TIME_S 5
-#define HTTP_GET "GET"
-#define HTTP_RESPONSE_HEADERS "HTTP/1.1 %d OK\nContent-Length: %d\nContent-Type: text/html; charset=utf-8\nConnection: close\n\n"
-#define LED_TEST_BODY "<html><body><h1>Hello from Pico W.</h1><p>Led is %s</p><p><a href=\"?led=%d\">Turn led %s</a></body></html>"
-#define LED_PARAM "led=%d"
-#define LED_TEST "/ledtest"
-#define LED_GPIO 0
-#define HTTP_RESPONSE_REDIRECT "HTTP/1.1 302 Redirect\nLocation: http://%s" LED_TEST "\n\n"
-
-typedef struct TCP_SERVER_T_ {
-    struct tcp_pcb *server_pcb;
-    bool complete;
-    ip_addr_t gw;
-    async_context_t *context;
-} TCP_SERVER_T;
-
-typedef struct TCP_CONNECT_STATE_T_ {
-    struct tcp_pcb *pcb;
-    int sent_len;
-    char headers[128];
-    char result[256];
-    int header_len;
-    int result_len;
-    ip_addr_t *gw;
-} TCP_CONNECT_STATE_T;
-
-MCP2515 mainCAN(SPI_PORT, MAIN_CAN_CS, SPI_MISO, SPI_MOSI, SPI_CLK, 500000);
-MCP2515 chademoCAN(SPI_PORT, CHADEMO_CAN_CS, SPI_MISO, SPI_MOSI, SPI_CLK, 500000);
-
-
-Charger charger;
-ChademoState state;
-Station station;
-BMS bms;
-Battery battery;
-StatusLED led;
-Chademo chademo;
+#include "wifi.h"
 
 
 static err_t tcp_close_client_connection(TCP_CONNECT_STATE_T *con_state, struct tcp_pcb *client_pcb, err_t close_err) {
@@ -132,7 +71,6 @@ static err_t tcp_server_sent(void *arg, struct tcp_pcb *pcb, u16_t len) {
 
 static int test_server_content(const char *request, const char *params, char *result, size_t max_result_len) {
     int len = 0;
-    /*
     if (strncmp(request, LED_TEST, sizeof(LED_TEST) - 1) == 0) {
         // Get the state of the led
         bool value;
@@ -159,7 +97,6 @@ static int test_server_content(const char *request, const char *params, char *re
             len = snprintf(result, max_result_len, LED_TEST_BODY, "OFF", 1, "ON");
         }
     }
-    */
     return len;
 }
 
@@ -203,7 +140,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 
             // Check we had enough buffer space
             if (con_state->result_len > sizeof(con_state->result) - 1) {
-                printf("Too much result data %d\n", con_state->result_len);
+                DEBUG_printf("Too much result data %d\n", con_state->result_len);
                 return tcp_close_client_connection(con_state, pcb, ERR_CLSD);
             }
 
@@ -212,21 +149,21 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
                 con_state->header_len = snprintf(con_state->headers, sizeof(con_state->headers), HTTP_RESPONSE_HEADERS,
                     200, con_state->result_len);
                 if (con_state->header_len > sizeof(con_state->headers) - 1) {
-                    printf("Too much header data %d\n", con_state->header_len);
+                    DEBUG_printf("Too much header data %d\n", con_state->header_len);
                     return tcp_close_client_connection(con_state, pcb, ERR_CLSD);
                 }
             } else {
                 // Send redirect
                 con_state->header_len = snprintf(con_state->headers, sizeof(con_state->headers), HTTP_RESPONSE_REDIRECT,
                     ipaddr_ntoa(con_state->gw));
-                printf("Sending redirect %s", con_state->headers);
+                DEBUG_printf("Sending redirect %s", con_state->headers);
             }
 
             // Send the headers to the client
             con_state->sent_len = 0;
             err_t err = tcp_write(pcb, con_state->headers, con_state->header_len, 0);
             if (err != ERR_OK) {
-                printf("failed to write header data %d\n", err);
+                DEBUG_printf("failed to write header data %d\n", err);
                 return tcp_close_client_connection(con_state, pcb, err);
             }
 
@@ -234,7 +171,7 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
             if (con_state->result_len) {
                 err = tcp_write(pcb, con_state->result, con_state->result_len, 0);
                 if (err != ERR_OK) {
-                    printf("failed to write result data %d\n", err);
+                    DEBUG_printf("failed to write result data %d\n", err);
                     return tcp_close_client_connection(con_state, pcb, err);
                 }
             }
@@ -247,14 +184,14 @@ err_t tcp_server_recv(void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 
 static err_t tcp_server_poll(void *arg, struct tcp_pcb *pcb) {
     TCP_CONNECT_STATE_T *con_state = (TCP_CONNECT_STATE_T*)arg;
-    printf("tcp_server_poll_fn\n");
+    DEBUG_printf("tcp_server_poll_fn\n");
     return tcp_close_client_connection(con_state, pcb, ERR_OK); // Just disconnect clent?
 }
 
 static void tcp_server_err(void *arg, err_t err) {
     TCP_CONNECT_STATE_T *con_state = (TCP_CONNECT_STATE_T*)arg;
     if (err != ERR_ABRT) {
-        printf("tcp_client_err_fn %d\n", err);
+        DEBUG_printf("tcp_client_err_fn %d\n", err);
         tcp_close_client_connection(con_state, con_state->pcb, err);
     }
 }
@@ -262,16 +199,15 @@ static void tcp_server_err(void *arg, err_t err) {
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
     if (err != ERR_OK || client_pcb == NULL) {
-        printf("failure in accept\n");
+        DEBUG_printf("failure in accept\n");
         return ERR_VAL;
     }
-    printf("client connected\n");
+    DEBUG_printf("client connected\n");
 
     // Create the state for the connection
-    //TCP_CONNECT_STATE_T *con_state = calloc(1, sizeof(TCP_CONNECT_STATE_T));
-    TCP_CONNECT_STATE_T *con_state = new TCP_CONNECT_STATE_T;
+    TCP_CONNECT_STATE_T *con_state = calloc(1, sizeof(TCP_CONNECT_STATE_T));
     if (!con_state) {
-        printf("failed to allocate connect state\n");
+        DEBUG_printf("failed to allocate connect state\n");
         return ERR_MEM;
     }
     con_state->pcb = client_pcb; // for checking
@@ -289,23 +225,23 @@ static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err)
 
 static bool tcp_server_open(void *arg, const char *ap_name) {
     TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
-    printf("starting server on port %d\n", TCP_PORT);
+    DEBUG_printf("starting server on port %d\n", TCP_PORT);
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
     if (!pcb) {
-        printf("failed to create pcb\n");
+        DEBUG_printf("failed to create pcb\n");
         return false;
     }
 
     err_t err = tcp_bind(pcb, IP_ANY_TYPE, TCP_PORT);
     if (err) {
-        printf("failed to bind to port %d\n",TCP_PORT);
+        DEBUG_printf("failed to bind to port %d\n",TCP_PORT);
         return false;
     }
 
     state->server_pcb = tcp_listen_with_backlog(pcb, 1);
     if (!state->server_pcb) {
-        printf("failed to listen\n");
+        DEBUG_printf("failed to listen\n");
         if (pcb) {
             tcp_close(pcb);
         }
@@ -319,77 +255,23 @@ static bool tcp_server_open(void *arg, const char *ap_name) {
     return true;
 }
 
-
-int main() {
-    stdio_init_all();
-
-    set_sys_clock_khz(80000, true);
-
-    // set up the serial port
-    uart_init(UART_ID, BAUD_RATE);
-    gpio_set_function(UART_TX_PIN, GPIO_FUNC_UART);
-    gpio_set_function(UART_RX_PIN, GPIO_FUNC_UART);
-
-    printf("Charger starting up ...\n");
-
-    chademo_reinitialise();
-
-    // Set up blinky LED
-    gpio_init(PICO_DEFAULT_LED_PIN);
-    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
-    led_set_mode(STANDBY);
-    enable_led_blink();
-
-    // 8MHz clock for CAN oscillator
-    clock_gpio_init(CAN_CLK_PIN, CLOCKS_CLK_GPOUT0_CTRL_AUXSRC_VALUE_CLK_SYS, 10);
-
-    printf("Setting up main CAN port (BITRATE:%d:%d)\n", CAN_500KBPS, MCP_8MHZ);
-    mainCAN.reset();
-    mainCAN.setBitrate(CAN_500KBPS, MCP_8MHZ);
-    mainCAN.setNormalMode();
-    printf("Enabling handling of inbound CAN messages on main bus\n");
-    enable_handle_main_CAN_messages();
-
-    printf("Setting up Chademo CAN port (BITRATE:%d:%d)\n", CAN_500KBPS, MCP_8MHZ);
-    chademoCAN.reset();
-    chademoCAN.setBitrate(CAN_500KBPS, MCP_8MHZ);
-    chademoCAN.setNormalMode();
-    printf("Enabling handling of inbound CAN messages on chademo bus\n");
-    enable_handle_chademo_CAN_messages();
-
-    printf("Starting web server\n");
-    TCP_SERVER_T *tcpState = new TCP_SERVER_T;
-
-    if (cyw43_arch_init()) {
-        printf("failed to initialise\n");
-        return 1;
-    }
-
-    const char *ap_name = "picow_test";
-    const char *password = "password";
-
-    cyw43_arch_enable_ap_mode(ap_name, password, CYW43_AUTH_WPA2_AES_PSK);
-
-    ip4_addr_t mask;
-    IP4_ADDR(ip_2_ip4(&tcpState->gw), 192, 168, 4, 1);
-    IP4_ADDR(ip_2_ip4(&mask), 255, 255, 255, 0);
-
-    dhcp_server_t dhcp_server;
-    dhcp_server_init(&dhcp_server, &tcpState->gw, &mask);
-
-    if (!tcp_server_open(tcpState, ap_name)) {
-        printf("failed to open server\n");
-        return 1;
-    }
-
-    tcpState->complete = false;
-
-
-
-    while(true) {
-        sleep_ms(1000);
-    }
-
-    return 0;
+// This "worker" function is called to safely perform work when instructed by key_pressed_func
+void key_pressed_worker_func(async_context_t *context, async_when_pending_worker_t *worker) {
+    assert(worker->user_data);
+    printf("Disabling wifi\n");
+    cyw43_arch_disable_ap_mode();
+    ((TCP_SERVER_T*)(worker->user_data))->complete = true;
 }
 
+static async_when_pending_worker_t key_pressed_worker = {
+        .do_work = key_pressed_worker_func
+};
+
+void key_pressed_func(void *param) {
+    assert(param);
+    int key = getchar_timeout_us(0); // get any pending key press but don't wait
+    if (key == 'd' || key == 'D') {
+        // We are probably in irq context so call wifi in a "worker"
+        async_context_set_work_pending(((TCP_SERVER_T*)param)->context, &key_pressed_worker);
+    }
+}

@@ -20,6 +20,9 @@
 #ifndef CHADEMOCOMMS_H
 #define CHADEMOCOMMS_H
 
+#include <stdbool.h>
+#include "pico/stdlib.h"
+
 bool handle_chademo_CAN_messages(struct repeating_timer *t);
 void enable_handle_chademo_CAN_messages();
 void enable_send_outbound_CAN_messages();

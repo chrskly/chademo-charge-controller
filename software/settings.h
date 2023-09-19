@@ -38,6 +38,9 @@
 #define MAIN_CAN_CS     17 // pin 22
 #define CHADEMO_CAN_CS  20 // pin 26
 
+// LED
+#define PICO_DEFAULT_LED_PIN 99
+
 #define CHARGE_INHIBIT_PIN 10 // pin 14
 
 // Chademo pins

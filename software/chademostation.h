@@ -20,48 +20,17 @@
 #ifndef CHADEMOSTATION_H
 #define CHADEMOSTATION_H
 
-class ChademoStation {
+#include <stdbool.h>
 
-    private:
+void reinitialise_station();
+bool initial_parameter_exchange_with_station_complete();
+void station_heartbeat();
+bool station_is_alive();
+bool connector_is_locked();
+bool station_is_reporting_battery_incompatibility();
+bool station_is_reporting_station_malfunction();
+bool station_is_reporting_charging_system_malfunction();
+bool station_is_allowing_charge();
 
-    public:
-
-        // capabilites
-        bool weldDetectionSupported;
-        uint16_t maximumVoltageAvailable;
-        uint8_t availableCurrent;
-        uint16_t thresholdVoltage; // evse reporting to car what it considers to be voltage to terminate charging
-
-        // status
-        uint8_t controlProtocolNumber;
-        uint16_t outputVoltage;
-        uint8_t outputCurrent;
-        uint8_t timeRemainingSeconds;
-        uint8_t timeRemainingMinutes;
-        bool stationStatus;
-        bool stationMalfunction;
-        bool vehicleConnectorLock;
-        bool batteryIncompatability;
-        bool chargingSystemMalfunction;
-        bool chargerStopControl;
-        
-        clock_t lastUpdateFromEVSE;
-
-        ChademoStation();
-        void reinitialise();
-        bool initial_parameter_exchange_complete();
-        void process_capabilities_update();
-        void process_status_update();
-
-        void heartbeat();
-        bool is_alive();
-        bool connector_is_locked();
-        bool is_reporting_battery_incompatibility();
-        bool is_reporting_station_malfunction();
-        bool is_reporting_charging_system_malfunction();
-        bool station_is_allowing_charge();
-
-
-};
 
 #endif

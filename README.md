@@ -1,6 +1,15 @@
 # CHAdeMO Implementation
 
-## Chademo pinout
+This repo contains a car-side implementation of the CHAdeMO EV charging
+standard including both the hardware and firmware.
+
+## Features
+
+* Supports CHAdeMO protocols v0.9, v1.0, and v2.0.
+* Automatic sleep, wake on plug insertion.
+* Separate manual wake button option.
+
+## Chademo Plug Pinout
 
  1. Ground
  2. CP : evse => car, IN1, contactor +ve signal, goes high when active, sensed by 'f'

@@ -23,12 +23,18 @@ using namespace std;
 #include "pico/stdlib.h"
 
 #include "mcp2515/mcp2515.h"
+
+extern "C" {
 #include "settings.h"
-#include "charger.h"
+#include "battery.h"
+#include "chademostatemachine.h"
+}
+
+#include "types.h"
 
 extern MCP2515 mainCAN;
-extern Charger charger;
-
+extern ChademoState state;
+extern BMS bms;
 
 struct can_frame mainCANInboundFrame;
 struct repeating_timer handleMainCANMessageTimer;
@@ -43,41 +49,41 @@ bool handle_main_CAN_message(struct repeating_timer *t) {
         switch ( mainCANInboundFrame.can_id ) {
 
             case BMS_LIMITS_MESSAGE_ID:
-                charger.battery.maximumVoltage = ( mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8 ) / 10;
-                charger.battery.maximumChargeCurrent = ( mainCANInboundFrame.data[2] | mainCANInboundFrame.data[3] << 8 ) / 10;
-                charger.battery.maximumDischargeCurrent = ( mainCANInboundFrame.data[4] | mainCANInboundFrame.data[5] << 8 ) / 10;
-                charger.battery.minimumVoltage = ( mainCANInboundFrame.data[6] | mainCANInboundFrame.data[7] << 8 ) / 10;
-                charger.chademo.state(E_BMS_UPDATE_RECEIVED);
-                charger.battery.bms_heartbeat();
+                bms.maximumVoltage = ( mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8 ) / 10;
+                bms.maximumChargeCurrent = ( mainCANInboundFrame.data[2] | mainCANInboundFrame.data[3] << 8 ) / 10;
+                bms.maximumDischargeCurrent = ( mainCANInboundFrame.data[4] | mainCANInboundFrame.data[5] << 8 ) / 10;
+                bms.minimumVoltage = ( mainCANInboundFrame.data[6] | mainCANInboundFrame.data[7] << 8 ) / 10;
+                state(E_BMS_UPDATE_RECEIVED);
+                bms_heartbeat();
                 break;
 
             case BMS_SOC_MESSAGE_ID:
-                charger.battery.soc = mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8;
-                charger.chademo.state(E_BMS_UPDATE_RECEIVED);
-                charger.battery.bms_heartbeat();
+                bms.soc = mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8;
+                state(E_BMS_UPDATE_RECEIVED);
+                bms_heartbeat();
                 break;
 
             case BMS_STATUS_MESSAGE_ID:            
-                charger.battery.voltage = ( mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8 ) / 100;
-                charger.battery.batteryCurrent = ( mainCANInboundFrame.data[2] | mainCANInboundFrame.data[3] << 8 ) / 10;
-                charger.battery.batteryTemperature = ( mainCANInboundFrame.data[4] | mainCANInboundFrame.data[5] << 8 ) / 10;
-                charger.battery.measuredVoltage = ( mainCANInboundFrame.data[6] | mainCANInboundFrame.data[7] << 8 ) / 100;
-                charger.chademo.state(E_BMS_UPDATE_RECEIVED);
-                charger.battery.bms_heartbeat();
+                bms.voltage = ( mainCANInboundFrame.data[0] | mainCANInboundFrame.data[1] << 8 ) / 100;
+                bms.batteryCurrent = ( mainCANInboundFrame.data[2] | mainCANInboundFrame.data[3] << 8 ) / 10;
+                bms.batteryTemperature = ( mainCANInboundFrame.data[4] | mainCANInboundFrame.data[5] << 8 ) / 10;
+                bms.measuredVoltage = ( mainCANInboundFrame.data[6] | mainCANInboundFrame.data[7] << 8 ) / 100;
+                state(E_BMS_UPDATE_RECEIVED);
+                bms_heartbeat();
                 break;
 
             case BMS_ALARM_MESSAGE_ID:
-                charger.battery.highCellAlarm = (mainCANInboundFrame.data[0] & ( 1 << 2 )) >> 2;
-                charger.battery.lowCellAlarm = (mainCANInboundFrame.data[0] & ( 1 << 4 )) >> 4;
-                charger.battery.highTempAlarm = (mainCANInboundFrame.data[0] & ( 1 << 6 )) >> 6;
-                charger.battery.lowTempAlarm = mainCANInboundFrame.data[1];
-                charger.battery.cellDeltaAlarm = mainCANInboundFrame.data[3];
-                charger.battery.highCellWarn = (mainCANInboundFrame.data[4] & ( 1 << 2 )) >> 2;
-                charger.battery.lowCellWarn = (mainCANInboundFrame.data[4] & ( 1 << 4 )) >> 4;
-                charger.battery.highTempWarn = (mainCANInboundFrame.data[4] & ( 1 << 6 )) >> 6;
-                charger.battery.lowTempWarn = mainCANInboundFrame.data[5];
-                charger.chademo.state(E_BMS_UPDATE_RECEIVED);
-                charger.battery.bms_heartbeat();
+                bms.highCellAlarm = (mainCANInboundFrame.data[0] & ( 1 << 2 )) >> 2;
+                bms.lowCellAlarm = (mainCANInboundFrame.data[0] & ( 1 << 4 )) >> 4;
+                bms.highTempAlarm = (mainCANInboundFrame.data[0] & ( 1 << 6 )) >> 6;
+                bms.lowTempAlarm = mainCANInboundFrame.data[1];
+                bms.cellDeltaAlarm = mainCANInboundFrame.data[3];
+                bms.highCellWarn = (mainCANInboundFrame.data[4] & ( 1 << 2 )) >> 2;
+                bms.lowCellWarn = (mainCANInboundFrame.data[4] & ( 1 << 4 )) >> 4;
+                bms.highTempWarn = (mainCANInboundFrame.data[4] & ( 1 << 6 )) >> 6;
+                bms.lowTempWarn = mainCANInboundFrame.data[5];
+                state(E_BMS_UPDATE_RECEIVED);
+                bms_heartbeat();
                 break;
 
             default:

@@ -1,5 +1,5 @@
 /*
- * This file is part of the ev mustang bms project.
+ * This file is part of the ev mustang charge controller project.
  *
  * Copyright (C) 2022 Christian Kelly <chrskly@chrskly.com>
  *
@@ -17,19 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef WIFICONSOLE_H
+#define WIFICONSOLE_H
 
-#ifndef LED_H
-#define LED_H
+#include "pico/cyw43_arch.h"
+#include "pico/stdlib.h"
+#include "picow_http/http.h"
 
-#include <stdbool.h>
+#include "lwip/pbuf.h"
+#include "lwip/tcp.h"
 
-#include "types.h"
 
-void enable_led_blink();
-void led_set_mode(LED_MODE newMode);
-void led_blink();
-bool process_led_blink_step();
+class WifiConsole {
+    private:
+        struct server *srv;
+        struct server_cfg cfg;
+    public:
+};
 
 #endif
-
-

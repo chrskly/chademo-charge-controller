@@ -20,7 +20,7 @@
 #ifndef CHADEMOSTATEMACHINE_H
 #define CHADEMOSTATEMACHINE_H
 
-enum ChademoEvent {
+typedef enum {
     E_PLUG_INSERTED,
     E_PLUG_REMOVED,
     E_IN1_ACTIVATED,
@@ -32,7 +32,8 @@ enum ChademoEvent {
     E_BMS_UPDATE_RECEIVED,
     E_CHARGE_INHIBIT_ENABLED,
     E_CHARGE_INHIBIT_DISABLED,
-};
+} ChademoEvent;
+
 
 typedef void (*ChademoState)(ChademoEvent);
 

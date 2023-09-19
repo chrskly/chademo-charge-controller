@@ -17,34 +17,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using namespace std;
-
 #include <time.h>
 #include <stdio.h>
-#include <algorithm>
 
 #include "chademostation.h"
-#include "chademostatemachine.h"
-#include "battery.h"
 #include "util.h"
-
 #include "settings.h"
+#include "types.h"
 
+extern Station station;
 
-extern ChademoState state;
-
-ChademoStation::ChademoStation() {}
 
 /*
  * When kicking off the charging process, we initialise these variables to zero
  * to ensure we get fresh values from the charging station. We may be restarting
  * a failed charge and have the old values lying around still.
  */
-void ChademoStation::reinitialise() {
-    controlProtocolNumber = 0;
-    maximumVoltageAvailable = 0;
-    availableCurrent = 0;
-    vehicleConnectorLock = false;
+void reinitialise_station() {
+    station.controlProtocolNumber = 0;
+    station.maximumVoltageAvailable = 0;
+    station.availableCurrent = 0;
+    // FIXME check actual local status here
+    station.vehicleConnectorLock = false;
 }
 
 /*
@@ -57,44 +51,44 @@ void ChademoStation::reinitialise() {
  *   - availableCurrent
  *   - batteryIncompatability
  */
-bool ChademoStation::initial_parameter_exchange_complete() {
+bool initial_parameter_exchange_with_station_complete() {
     return (
-        controlProtocolNumber != 0 && 
-        maximumVoltageAvailable != 0 && 
-        availableCurrent != 0 && 
-        ! batteryIncompatability
+        station.controlProtocolNumber != 0 && 
+        station.maximumVoltageAvailable != 0 && 
+        station.availableCurrent != 0 && 
+        ! station.batteryIncompatability
     );
 }
 
 // Mark the chademo station as seen right now
-void ChademoStation::heartbeat() {
-    lastUpdateFromEVSE = get_clock();
+void station_heartbeat() {
+    station.lastUpdateFromEVSE = get_clock();
 }
 
 // Return true if station was seen recently enough to be considered alive
-bool ChademoStation::is_alive() {
-    return ( ((double)(get_clock() - lastUpdateFromEVSE) / CLOCKS_PER_SEC) < BMS_TTL );
+bool station_is_alive() {
+    return ( ((double)(get_clock() - station.lastUpdateFromEVSE) / CLOCKS_PER_SEC) < CHADEMO_STATION_TTL );
 }
 
 // Return true if the connector plug is locked to the car
-bool ChademoStation::connector_is_locked() {
-    return vehicleConnectorLock;
+bool connector_is_locked() {
+    return station.vehicleConnectorLock;
 }
 
-bool ChademoStation::is_reporting_battery_incompatibility() {
-    return batteryIncompatability;
+bool station_is_reporting_battery_incompatibility() {
+    return station.batteryIncompatability;
 }
 
-bool ChademoStation::is_reporting_station_malfunction() {
-    return stationMalfunction;
+bool station_is_reporting_station_malfunction() {
+    return station.stationMalfunction;
 }
 
-bool ChademoStation::is_reporting_charging_system_malfunction() {
-    return chargingSystemMalfunction;
+bool station_is_reporting_charging_system_malfunction() {
+    return station.chargingSystemMalfunction;
 }
 
-bool ChademoStation::station_is_allowing_charge() {
-    return chargerStopControl;
+bool station_is_allowing_charge() {
+    return station.chargerStopControl;
 }
 
 

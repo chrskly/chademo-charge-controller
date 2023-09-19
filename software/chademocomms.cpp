@@ -17,20 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-using namespace std;
-
 #include <stdio.h>
 #include "pico/stdlib.h"
 
 #include "mcp2515/mcp2515.h"
+
+extern "C" {
+#include "chademostation.h"
 #include "settings.h"
-#include "charger.h"
-#include "util.h"
+#include "chademo.h"
+#include "battery.h"
+}
 
+#include "types.h"
 
-extern Charger charger;
+extern Battery battery;
 extern MCP2515 chademoCAN;
-
+extern Station station;
+extern BMS bms;
 
 /*
  * ID : 0x100
@@ -48,15 +52,14 @@ void send_limits_message() {
     frame.data[1] = 0x00;
     frame.data[2] = 0x00;
     frame.data[3] = 0x00;
-    frame.data[4] = (uint8_t)charger.chademo.get_target_voltage() & 0xFF;
-    frame.data[5] = (uint8_t)charger.chademo.get_target_voltage() >> 8;
-    frame.data[6] = (uint8_t)charger.battery.soc;
+    frame.data[4] = (uint8_t)chademo_get_target_voltage() & 0xFF;
+    frame.data[5] = (uint8_t)chademo_get_target_voltage() >> 8;
+    frame.data[6] = (uint8_t)bms.soc;
     frame.data[7] = 0x00;
 
     chademoCAN.sendMessage(&frame);
 
 }
-
 
 
 /*
@@ -77,11 +80,11 @@ void send_charge_time_message() {
     frame.can_dlc = 8;
     frame.data[0] = 0x00; // unused
     frame.data[1] = 0xFF; // Don't declare max charge time in seconds
-    frame.data[2] = charger.battery.get_charging_time_minutes_max();
-    frame.data[3] = charger.battery.get_charging_time_minutes();
+    frame.data[2] = get_charging_time_minutes_max();
+    frame.data[3] = get_charging_time_minutes();
     frame.data[4] = 0x00; // unused
-    frame.data[5] = (uint8_t)( charger.battery.batteryCapacityWH / 1000 / 0.11 ) & 0xFF;
-    frame.data[6] = (uint8_t)( charger.battery.batteryCapacityWH / 1000 / 0.11 ) >> 8;
+    frame.data[5] = (uint8_t)( battery.capacityWH / 1000 / 0.11 ) & 0xFF;
+    frame.data[6] = (uint8_t)( battery.capacityWH / 1000 / 0.11 ) >> 8;
     frame.data[7] = 0x00; // unused
 
     chademoCAN.sendMessage(&frame);
@@ -117,11 +120,11 @@ void send_status_message() {
     frame.can_id = 0x102;
     frame.can_dlc = 8;
     frame.data[0] = CHADEMO_PROTOCOL_VERSION;
-    frame.data[1] = (uint8_t)charger.chademo.get_target_voltage() & 0xFF;
-    frame.data[2] = (uint8_t)charger.chademo.get_target_voltage() >> 8;
-    frame.data[3] = charger.chademo.get_charging_current_request();
-    frame.data[4] = charger.chademo.generate_battery_status_byte();
-    frame.data[5] = charger.chademo.generate_vehicle_status_byte();
+    frame.data[1] = (uint8_t)chademo_get_target_voltage() & 0xFF;
+    frame.data[2] = (uint8_t)chademo_get_target_voltage() >> 8;
+    frame.data[3] = get_charging_current_request();
+    frame.data[4] = generate_battery_status_byte();
+    frame.data[5] = generate_vehicle_status_byte();
     frame.data[6] = 0x00; // how full is the battery in kWh
     frame.data[7] = 0x00; // unused
 
@@ -165,39 +168,39 @@ bool handle_chademo_CAN_messages(struct repeating_timer *t) {
         switch ( chademoInboundFrame.can_id ) {
 
             case EVSE_CAPABILITIES_MESSAGE_ID:
-                charger.chademo.station.weldDetectionSupported = chademoInboundFrame.data[0];
+                station.weldDetectionSupported = chademoInboundFrame.data[0];
                 // 1V/bit (0 to 600V)
-                charger.chademo.station.maximumVoltageAvailable = chademoInboundFrame.data[1] + chademoInboundFrame.data[2] << 8;
+                station.maximumVoltageAvailable = chademoInboundFrame.data[1] + chademoInboundFrame.data[2] << 8;
                 // 1A/bit (0 to 255A)
-                charger.chademo.station.availableCurrent = chademoInboundFrame.data[3];
+                station.availableCurrent = chademoInboundFrame.data[3];
                 // 1V/bit (0 to 600V)
-                charger.chademo.station.thresholdVoltage = chademoInboundFrame.data[4] + chademoInboundFrame.data[5] << 8;
+                station.thresholdVoltage = chademoInboundFrame.data[4] + chademoInboundFrame.data[5] << 8;
 
-                charger.chademo.station.heartbeat();
+                station_heartbeat();
 
-                charger.chademo.state(E_STATION_CAPABILITIES_UPDATED);
+                //(*state)(E_STATION_CAPABILITIES_UPDATED);
                 break;
 
             case EVSE_STATUS_MESSAGE_ID:
-                charger.chademo.station.controlProtocolNumber = chademoInboundFrame.data[0]; // chademo protocol version
+                station.controlProtocolNumber = chademoInboundFrame.data[0]; // chademo protocol version
                 // 1V/bit (0 to 600V)
-                charger.chademo.station.outputVoltage = chademoInboundFrame.data[1] + chademoInboundFrame.data[2] << 8;
+                station.outputVoltage = chademoInboundFrame.data[1] + chademoInboundFrame.data[2] << 8;
                 // 1A/bit (0 to 255A)
-                charger.chademo.station.outputCurrent = chademoInboundFrame.data[3];
+                station.outputCurrent = chademoInboundFrame.data[3];
                 // 10s/bit (0 to 2540s)
-                charger.chademo.station.timeRemainingSeconds = 10 * chademoInboundFrame.data[6];
+                station.timeRemainingSeconds = 10 * chademoInboundFrame.data[6];
                 // 1min/bit (0 to 255min)
-                charger.chademo.station.timeRemainingMinutes = chademoInboundFrame.data[7];
-                charger.chademo.station.stationStatus = chademoInboundFrame.data[5] & 1;                             // bit 0
-                charger.chademo.station.stationMalfunction = (chademoInboundFrame.data[5] & ( 1 << 1 )) >> 1;        // bit 1
-                charger.chademo.station.vehicleConnectorLock = (chademoInboundFrame.data[5] & ( 1 << 2 )) >> 2;      // bit 2
-                charger.chademo.station.batteryIncompatability = (chademoInboundFrame.data[5] & ( 1 << 3 )) >> 3;    // bit 3
-                charger.chademo.station.chargingSystemMalfunction = (chademoInboundFrame.data[5] & ( 1 << 4 )) >> 4; // bit 4
-                charger.chademo.station.chargerStopControl = (chademoInboundFrame.data[5] & ( 1 << 5 )) >> 5;        // bit 5
+                station.timeRemainingMinutes = chademoInboundFrame.data[7];
+                station.stationStatus = chademoInboundFrame.data[5] & 1;                             // bit 0
+                station.stationMalfunction = (chademoInboundFrame.data[5] & ( 1 << 1 )) >> 1;        // bit 1
+                station.vehicleConnectorLock = (chademoInboundFrame.data[5] & ( 1 << 2 )) >> 2;      // bit 2
+                station.batteryIncompatability = (chademoInboundFrame.data[5] & ( 1 << 3 )) >> 3;    // bit 3
+                station.chargingSystemMalfunction = (chademoInboundFrame.data[5] & ( 1 << 4 )) >> 4; // bit 4
+                station.chargerStopControl = (chademoInboundFrame.data[5] & ( 1 << 5 )) >> 5;        // bit 5
 
-                charger.chademo.station.heartbeat();
+                station_heartbeat();
 
-                charger.chademo.state(E_STATION_STATUS_UPDATED);
+                //(*state)(E_STATION_STATUS_UPDATED);
                 break;
 
         }
