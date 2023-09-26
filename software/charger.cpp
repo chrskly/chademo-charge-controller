@@ -31,6 +31,7 @@ using namespace std;
 #include "pico/stdlib.h"
 #include "lwip/pbuf.h"
 #include "lwip/tcp.h"
+#include "hardware/watchdog.h"
 
 extern "C" {
     #include "led.h"
@@ -90,6 +91,23 @@ StatusLED led;
 Chademo chademo;
 
 
+
+// Watchdog
+
+struct repeating_timer watchdogKeepaliveTimer;
+
+bool watchdog_keepalive(struct repeating_timer *t) {
+    watchdog_update();
+    return true;
+}
+
+void enable_watchdog_keepalive() {
+    add_repeating_timer_ms(5000, watchdog_keepalive, NULL, &watchdogKeepaliveTimer);
+}
+
+
+// Web stuff
+
 static err_t tcp_close_client_connection(TCP_CONNECT_STATE_T *con_state, struct tcp_pcb *client_pcb, err_t close_err) {
     if (client_pcb) {
         assert(con_state && con_state->pcb == client_pcb);
@@ -131,7 +149,8 @@ static err_t tcp_server_sent(void *arg, struct tcp_pcb *pcb, u16_t len) {
 }
 
 static int test_server_content(const char *request, const char *params, char *result, size_t max_result_len) {
-    int len = 0;
+    //int len = 0;
+    int len = 1;
     /*
     if (strncmp(request, LED_TEST, sizeof(LED_TEST) - 1) == 0) {
         // Get the state of the led
@@ -384,10 +403,14 @@ int main() {
 
     tcpState->complete = false;
 
-
-
+/*
     while(true) {
         sleep_ms(1000);
+    }
+    */
+    while(!tcpState->complete) {
+        cyw43_arch_poll();
+        cyw43_arch_wait_for_work_until(make_timeout_time_ms(1000));
     }
 
     return 0;
