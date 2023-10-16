@@ -98,16 +98,24 @@ typedef struct {
     bool chargingSystemMalfunction;
     bool chargerStopControl;
     
-    clock_t lastUpdateFromEVSE;
+    clock_t lastHeartbeat;
 } Station;
 
+
+// Termination condition
+
+typedef enum {
+    STOP_AT_SOC,
+    STOP_AT_VOLTAGE,
+    STOP_AT_TIME
+} TerminationCondition;
 
 // Chademo
 
 typedef struct {
     /* This is the current (amps) we will request from the station. It will
      * vary dynamically throughout the charging process because of max ramp
-     * rates, amps available and charger, BMS limits, etc.
+     * rates, amps available at the charger, BMS limits, etc.
      */
     uint8_t chargingCurrentRequest;
 
@@ -128,6 +136,8 @@ typedef struct {
     bool vehicleNotInPark;
     bool vehicleChargingSystemFault;
     bool vehicleRequestingStop;
+
+    TerminationCondition terminationCondition;
 } Chademo;
 
 
@@ -146,6 +156,8 @@ typedef struct {
     int onDuration;
     int offDuration;
 } StatusLED;
+
+
 
 
 /*
