@@ -21,11 +21,41 @@
 #include <stdio.h>
 
 #include "chademostation.h"
+#include "chademostatemachine.h"
 #include "util.h"
 #include "settings.h"
 #include "types.h"
 
 extern Station station;
+extern ChademoState state;
+
+
+/*
+ * Record the last time we saw a message from the charging station. If we don't
+ * see one within CHADEMO_STATION_TTL timeframe, we've lost communications with
+ * the charging station and must terminate the charing session.
+ */
+
+void station_heartbeat() {
+    station.lastHeartbeat = get_clock();
+}
+
+bool station_is_alive() {
+    return ( ((double)(get_clock() - station.lastHeartbeat) / CLOCKS_PER_SEC) < CHADEMO_STATION_TTL );
+}
+
+struct repeating_timer stationLivenessCheckTimer;
+
+bool station_liveness_check(struct repeating_timer *t) {
+    if ( ! station_is_alive() ) {
+        state(E_STATION_LIVENESS_CHECK_FAILED);
+    }
+    return true;
+}
+
+void enable_station_liveness_check() {
+    add_repeating_timer_ms(1000, station_liveness_check, NULL, &stationLivenessCheckTimer);
+}
 
 
 /*
@@ -60,15 +90,7 @@ bool initial_parameter_exchange_with_station_complete() {
     );
 }
 
-// Mark the chademo station as seen right now
-void station_heartbeat() {
-    station.lastUpdateFromEVSE = get_clock();
-}
 
-// Return true if station was seen recently enough to be considered alive
-bool station_is_alive() {
-    return ( ((double)(get_clock() - station.lastUpdateFromEVSE) / CLOCKS_PER_SEC) < CHADEMO_STATION_TTL );
-}
 
 // Return true if the connector plug is locked to the car
 bool connector_is_locked() {
