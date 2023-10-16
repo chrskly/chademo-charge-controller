@@ -59,6 +59,7 @@ void gpio_callback(uint gpio, uint32_t events) {
         }
     }
 
+    // Listen to CHARGE_INHIIT signal from BMS
     if ( gpio == CHARGE_INHIBIT_PIN ) {
         if ( gpio_get(CHARGE_INHIBIT_PIN) == 0 ) {
             chademoState(E_CHARGE_INHIBIT_ENABLED);
