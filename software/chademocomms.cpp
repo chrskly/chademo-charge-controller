@@ -24,6 +24,7 @@
 
 extern "C" {
 #include "chademostation.h"
+#include "chademostatemachine.h"
 #include "settings.h"
 #include "chademo.h"
 #include "battery.h"
@@ -35,6 +36,7 @@ extern Battery battery;
 extern MCP2515 chademoCAN;
 extern Station station;
 extern BMS bms;
+extern ChademoState state;
 
 /*
  * ID : 0x100
@@ -177,8 +179,7 @@ bool handle_chademo_CAN_messages(struct repeating_timer *t) {
                 station.thresholdVoltage = chademoInboundFrame.data[4] + chademoInboundFrame.data[5] << 8;
 
                 station_heartbeat();
-
-                //(*state)(E_STATION_CAPABILITIES_UPDATED);
+                state(E_STATION_CAPABILITIES_UPDATED);
                 break;
 
             case EVSE_STATUS_MESSAGE_ID:
@@ -199,8 +200,7 @@ bool handle_chademo_CAN_messages(struct repeating_timer *t) {
                 station.chargerStopControl = (chademoInboundFrame.data[5] & ( 1 << 5 )) >> 5;        // bit 5
 
                 station_heartbeat();
-
-                //(*state)(E_STATION_STATUS_UPDATED);
+                state(E_STATION_STATUS_UPDATED);
                 break;
 
         }
