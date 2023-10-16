@@ -97,7 +97,7 @@ bool chademo_station_voltage_sufficient() {
  * requiring, the maximum current the station can provide right now, and the
  * maximum rate at which the the current request may change (ramp rate).
  */
-void chademo_recalculate_charging_current_request() {
+void recalculate_charging_current_request() {
 
     clock_t now = get_clock();
 

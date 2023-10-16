@@ -30,7 +30,7 @@ bool in_constant_current_window();
 bool in_constant_voltage_window();
 float chademo_get_target_voltage();
 bool chademo_station_voltage_sufficient();
-void chademo_recalculate_charging_current_request();
+void recalculate_charging_current_request();
 void ramp_down_current_request();
 uint8_t get_charging_current_request();
 void recalculate_charging_time();
