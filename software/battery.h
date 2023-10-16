@@ -24,11 +24,15 @@
 
 void bms_heartbeat();
 bool bms_is_alive();
+void enable_bms_liveness_check();
 float battery_get_target_voltage();
 uint8_t battery_get_voltage_from_soc(uint8_t soc);
 void battery_recalculate_charging_time_minutes(uint8_t current, uint8_t targetSoc);
 uint8_t get_charging_time_minutes();
 uint8_t get_charging_time_minutes_max();
 bool battery_is_full();
+bool battery_is_too_hot();
+bool battery_is_too_cold();
+
 
 #endif

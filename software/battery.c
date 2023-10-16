@@ -23,12 +23,12 @@
 #include "battery.h"
 #include "util.h"
 #include "settings.h"
-
+#include "chademostatemachine.h"
 #include "types.h"
 
 extern BMS bms;
 extern Battery battery;
-
+extern ChademoState state;
 
 //
 // BMS
@@ -46,6 +46,22 @@ void bms_heartbeat() {
 bool bms_is_alive() {
     return ( ((double)(get_clock() - bms.lastHeartbeat) / CLOCKS_PER_SEC) < BMS_TTL );
 }
+
+// Watch for no messages from BMS
+
+struct repeating_timer bmsLivenessCheckTimer;
+
+bool bms_liveness_check(struct repeating_timer *t) {
+    if ( ! bms_is_alive() ) {
+        state(E_BMS_LIVENESS_CHECK_FAILED);
+    }
+    return true;
+}
+
+void enable_bms_liveness_check() {
+    add_repeating_timer_ms(1000, bms_liveness_check, NULL, &bmsLivenessCheckTimer);
+}
+
 
 
 //
@@ -100,6 +116,14 @@ bool battery_is_full() {
         return true;
     }
     return false;
+}
+
+bool battery_is_too_hot() {
+    return bms.highTempAlarm;
+}
+
+bool battery_is_too_cold() {
+    return bms.lowTempWarn || bms.lowTempAlarm;
 }
 
 
