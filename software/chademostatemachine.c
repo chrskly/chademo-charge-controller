@@ -51,18 +51,29 @@ void chademo_state_idle(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
-            // Battery is full, go straight to inhibited state
-            if ( battery_is_full() ) {
-                printf("Switching to state : charge_inhibited, reason : battery is full\n");
+            // Auxiliary check for CHARGE_INHIBIT condition
+            if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
+                printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
                 state = chademo_state_charge_inhibited;
+                break;
             }
 
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
             break;
 
         case E_CHARGE_INHIBIT_ENABLED:
 
             printf("Switching to state : charge_inhibited, reason : received charge_inhibit input signal\n");
             state = chademo_state_charge_inhibited;
+            break;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+            // Should never fire
             break;
 
         default:
@@ -102,28 +113,37 @@ void chademo_state_plug_in(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
-            // Battery is full, go straight to inhibited state
-            if ( battery_is_full() ) {
-                printf("Switching to state : charge_inhibited, reason : battery is full\n");
+            // Auxiliary check for CHARGE_INHIBIT condition
+            if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
+                printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
                 state = chademo_state_charge_inhibited;
+                break;
             }
+
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
 
             break;
 
         // Station has activated IN1/CP signal indicating it's ready to start charging
         case E_IN1_ACTIVATED:
 
+            printf("Switching to state : handshaking, reason : station enabled IN1/CP signal\n");
             reinitialise_station();
             // Begin sending vehicle state over CAN to station
             enable_send_outbound_CAN_messages();
-            printf("Switching to state : handshaking, reason : station enabled IN1/CP signal\n");
+            enable_station_liveness_check();
             state = chademo_state_handshaking;
             break;
 
         case E_PLUG_REMOVED:
 
-            chademo_reinitialise();
             printf("Switching to state : idle, reason : plug removed\n");
+            chademo_reinitialise();
             state = chademo_state_idle;
             break;
 
@@ -131,6 +151,10 @@ void chademo_state_plug_in(ChademoEvent event) {
 
             printf("Switching to state : charge_inhibited, reason : received charge_inhibit input signal\n");
             state = chademo_state_charge_inhibited;
+            break;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+            // Should never fire
             break;
 
         default:
@@ -174,18 +198,25 @@ void chademo_state_handshaking(ChademoEvent event) {
 
         case E_IN1_DEACTIVATED:
 
+            printf("Switching to state : plug_in, reason : IN1/CP signal was disabled\n");
             initiate_shutdown();
-            printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
             state = chademo_state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
 
-            // Battery is full, go straight to inhibited state
-            if ( battery_is_full() ) {
-                initiate_shutdown();
-                printf("Switching to state : charge_inhibited, reason : battery full\n");
+            // Auxiliary check for CHARGE_INHIBIT condition
+            if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
+                printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
                 state = chademo_state_charge_inhibited;
+                break;
             }
+
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
 
             break;
 
@@ -240,6 +271,10 @@ void chademo_state_handshaking(ChademoEvent event) {
             // disable_send_outbound_CAN_messages();
             state = chademo_state_charge_inhibited;
 
+        case E_STATION_LIVENESS_CHECK_FAILED:
+            // Should never fire
+            break;
+
         default:
 
             printf("WARNING : received invalid event [%s]\n", event);
@@ -271,11 +306,19 @@ void chademo_state_await_connector_lock(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
-            // Battery is full, go straight to inhibited state
-            if ( battery_is_full() ) {
-                initiate_shutdown();
+            // Auxiliary check for CHARGE_INHIBIT condition
+            if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
+                printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
                 state = chademo_state_charge_inhibited;
+                break;
             }
+
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
 
             break;
 
@@ -311,6 +354,12 @@ void chademo_state_await_connector_lock(ChademoEvent event) {
             deactivate_out1();
             state = chademo_state_charge_inhibited;
 
+        case E_STATION_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with station\n");
+            state = chademo_state_error;
+            break;
+
         default:
 
             printf("WARNING : received invalid event [%s]\n", event);
@@ -337,17 +386,24 @@ void chademo_state_await_insulation_test(ChademoEvent event) {
 
         case E_IN1_DEACTIVATED:
 
-            initiate_shutdown();
             printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
+            initiate_shutdown();
             state = chademo_state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
 
-            // Battery is full, go straight to inhibited state
-            if ( battery_is_full() ) {
-                initiate_shutdown();
+            if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
+                printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
                 state = chademo_state_charge_inhibited;
+                break;
             }
+
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
 
             break;
 
@@ -357,6 +413,7 @@ void chademo_state_await_insulation_test(ChademoEvent event) {
         case E_IN2_ACTIVATED:
 
             // close contactors
+            printf("Switching to state : energy_transfer, reason : IN2/CP2 activated\n");
             permit_contactor_close();
             state = chademo_state_energy_transfer;  
 
@@ -365,6 +422,7 @@ void chademo_state_await_insulation_test(ChademoEvent event) {
          */
         case E_PLUG_REMOVED:
 
+            printf("Switching to state : idle, reason : plug removed\n");
             chademo_reinitialise();
             state = chademo_state_idle;
             break;
@@ -373,6 +431,12 @@ void chademo_state_await_insulation_test(ChademoEvent event) {
 
             // FIXME how do we exit safely from here? send error msg?
             state = chademo_state_charge_inhibited;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with station\n");
+            state = chademo_state_error;
+            break;
 
         default:
 
@@ -402,15 +466,29 @@ void chademo_state_energy_transfer(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
+            recalculate_charging_current_request();
+
             // Stop charging if the BMS says the battery is full
             if ( battery_is_full() ) {
-                initiate_shutdown();
                 printf("Switching to state : winding down, reason : battery full\n");
+                initiate_shutdown();
                 state = chademo_state_winding_down;
                 break;
             }
 
-            chademo_recalculate_charging_current_request();
+            // Battery is too hot, got straight to inhibited state
+            if ( battery_is_too_hot() ) {
+                printf("Switching to state : charge_inhibited, reason : battery is too hot\n");
+                initiate_shutdown();
+                state = chademo_state_charge_inhibited;
+            }
+
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with BMS\n");
+            state = chademo_state_error;
 
             break;
 
@@ -427,7 +505,7 @@ void chademo_state_energy_transfer(ChademoEvent event) {
         case E_STATION_CAPABILITIES_UPDATED:
 
             // Current available at station may have changed
-            chademo_recalculate_charging_current_request();
+            recalculate_charging_current_request();
 
             // If current available has changed then the charging time may need updating
             recalculate_charging_time();
@@ -449,6 +527,13 @@ void chademo_state_energy_transfer(ChademoEvent event) {
 
             // FIXME how do we exit safely from here? send error msg?
             state = chademo_state_charge_inhibited;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : communication timeout with station\n");
+            // FIXME what else do we need to do here?
+            state = chademo_state_error;
+            break;
 
         default:
             printf("WARNING : received invalid event [%s]\n", event);
@@ -480,6 +565,10 @@ void chademo_state_winding_down(ChademoEvent event) {
             ramp_down_current_request();
             break;
 
+        case E_BMS_LIVENESS_CHECK_FAILED:
+            // We're already shutting down the charging session.
+            break;
+
         case E_STATION_CAPABILITIES_UPDATED:
             ramp_down_current_request();
             break;
@@ -492,6 +581,9 @@ void chademo_state_winding_down(ChademoEvent event) {
             break;
 
         case E_CHARGE_INHIBIT_ENABLED:
+            break;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
             break;
 
         default:
@@ -511,15 +603,31 @@ void chademo_state_winding_down(ChademoEvent event) {
  * CS          : deactivated
  * Plug locked : no
  *
+ * Reasons we can be inhibited
+ *   - battery is full
+ *   - battery is too hot
+ *   - battery is too cold (warming in progress)
+ *   - CHARGE_INHIBIT signal from BMS has been activated
+ *
  */
 void chademo_state_charge_inhibited(ChademoEvent event) {
 
     switch (event) {
 
         case E_BMS_UPDATE_RECEIVED:
+
+            if ( ! battery_is_full() && ! battery_is_too_hot() && ! battery_is_too_cold() ) {
+                //
+            }
+
             break;
 
         case E_CHARGE_INHIBIT_DISABLED:
+
+            break;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+
             break;
 
         default:
