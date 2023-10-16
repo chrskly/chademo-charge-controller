@@ -369,6 +369,8 @@ int main() {
     printf("Enabling handling of inbound CAN messages on main bus\n");
     enable_handle_main_CAN_messages();
 
+    enable_bms_liveness_check();
+
     printf("Setting up Chademo CAN port (BITRATE:%d:%d)\n", CAN_500KBPS, MCP_8MHZ);
     chademoCAN.reset();
     chademoCAN.setBitrate(CAN_500KBPS, MCP_8MHZ);
@@ -403,7 +405,7 @@ int main() {
 
     tcpState->complete = false;
 
-/*
+    /*
     while(true) {
         sleep_ms(1000);
     }
