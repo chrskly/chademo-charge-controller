@@ -97,4 +97,7 @@
 #define BATTERY_MAX_CURRENT 10          // fixme put in proper value
 #define BATTERY_MAX_CURRENT_FAILSAFE 10 // maximum current to use if we lose communication with the BMS
 
+// Stop charging when current drops to this level
+#define TERMINATE_CHARGING_CURRENT 5
+
 #endif
