@@ -617,21 +617,52 @@ void chademo_state_charge_inhibited(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
+            // Auxiliary CHARGE_INHIBIT check escape
             if ( ! battery_is_full() && ! battery_is_too_hot() && ! battery_is_too_cold() && ! charge_inhibit_enabled() ) {
                 if ( plug_is_inserted() ) {
+                    printf("Switching to state : plug_in, reason : aux charge_inhibit check passed\n");
                     state = chademo_state_plug_in;
                 } else {
+                    printf("Switching to state : idle, reason : aux charge_inhibit check passed\n");
                     state = chademo_state_idle;
                 }
             }
 
             break;
 
-        case E_CHARGE_INHIBIT_DISABLED:
+        case E_BMS_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : BMS liveness check failed\n");
+            state = chademo_state_error;
 
             break;
 
+        case E_PLUG_INSERTED:
+
+            break;
+
+        case E_CHARGE_INHIBIT_DISABLED:
+
+            // We're no longer in an inhibit state, go back to idle or plug_in
+            if ( ! battery_is_full() && ! battery_is_too_hot() && ! battery_is_too_cold() && ! charge_inhibit_enabled() ) {
+                if ( plug_is_inserted() ) {
+                    printf("Switching to state : plug_in, reason : charge_inhibit check passed\n");
+                    state = chademo_state_plug_in;
+                } else {
+                    printf("Switching to state : idle, reason : charge_inhibit check passed\n");
+                    state = chademo_state_idle;
+                }
+            }
+
+            break;
+
+        /* This event should only fire if we were charging and moved into an
+         * inhibited state.
+         */
         case E_STATION_LIVENESS_CHECK_FAILED:
+
+            printf("Switching to state : error, reason : bms liveness check failed\n");
+            state = chademo_state_error;
 
             break;
 
@@ -651,6 +682,11 @@ void chademo_state_charge_inhibited(ChademoEvent event) {
  * CS          : deactivated
  * Plug locked : no
  *
+ * We can get into an error state when:
+ *   - communication timeout with BMS
+ *   - communication timeout with station
+ *   - station compatability issue (voltage)
+ *   - station reporting a fault
  */
 void chademo_state_error(ChademoEvent event) {
 
