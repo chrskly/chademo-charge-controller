@@ -22,6 +22,7 @@
 
 #include <stdbool.h>
 
+void enable_station_liveness_check();
 void reinitialise_station();
 bool initial_parameter_exchange_with_station_complete();
 void station_heartbeat();
