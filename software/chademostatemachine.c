@@ -24,6 +24,7 @@
 #include "chademostation.h"
 #include "chademo.h"
 #include "chademocomms.h"
+#include "inputs.h"
 
 extern ChademoState state;
 
@@ -616,8 +617,12 @@ void chademo_state_charge_inhibited(ChademoEvent event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
-            if ( ! battery_is_full() && ! battery_is_too_hot() && ! battery_is_too_cold() ) {
-                //
+            if ( ! battery_is_full() && ! battery_is_too_hot() && ! battery_is_too_cold() && ! charge_inhibit_enabled() ) {
+                if ( plug_is_inserted() ) {
+                    state = chademo_state_plug_in;
+                } else {
+                    state = chademo_state_idle;
+                }
             }
 
             break;

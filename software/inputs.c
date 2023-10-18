@@ -82,3 +82,10 @@ void enable_listen_for_CS_signal() {
     gpio_set_irq_enabled(CHADEMO_CS_PIN, GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL, true);
 }
 
+bool charge_inhibit_enabled() {
+    return gpio_get(CHARGE_INHIBIT_PIN) == 0;
+}
+
+bool plug_is_inserted() {
+    return gpio_get(CHADEMO_CS_PIN) == 0;
+}
