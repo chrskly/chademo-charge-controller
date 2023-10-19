@@ -39,14 +39,14 @@ typedef enum {
 
 typedef void (*ChademoState)(ChademoEvent);
 
-void chademo_state_idle(ChademoEvent event);
-void chademo_state_plug_in(ChademoEvent event);
-void chademo_state_handshaking(ChademoEvent event);
-void chademo_state_await_connector_lock(ChademoEvent event);
-void chademo_state_await_insulation_test(ChademoEvent event);
-void chademo_state_energy_transfer(ChademoEvent event);
-void chademo_state_winding_down(ChademoEvent event);
-void chademo_state_charge_inhibited(ChademoEvent event);
-void chademo_state_error(ChademoEvent event);
+void state_idle(ChademoEvent event);
+void state_plug_in(ChademoEvent event);
+void state_handshaking(ChademoEvent event);
+void state_await_connector_lock(ChademoEvent event);
+void state_await_insulation_test(ChademoEvent event);
+void state_energy_transfer(ChademoEvent event);
+void state_winding_down(ChademoEvent event);
+void state_charge_inhibited(ChademoEvent event);
+void state_error(ChademoEvent event);
 
 #endif
