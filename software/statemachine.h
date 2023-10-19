@@ -36,7 +36,7 @@ typedef enum {
     E_STATION_LIVENESS_CHECK_FAILED
 } Event;
 
-
+// Holds the current state of the state machine.
 typedef void (*State)(Event);
 
 void state_idle(Event event);

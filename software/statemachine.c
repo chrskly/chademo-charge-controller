@@ -243,11 +243,25 @@ void state_handshaking(Event event) {
 
         case E_STATION_STATUS_UPDATED:
 
-            // Check for error conditions from station
-            if ( error_condition() ) {
+            if ( station_is_reporting_station_malfunction() ) {
                 disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting error condition\n");
+                printf("Switching to state : error, reason : station reporting station malfunction\n");
                 state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_battery_incompatibility() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_charging_system_malfunction() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                state = state_error;
+                break;
             }
 
             // If we have received all of the params we need from the station, move to the next step
@@ -329,10 +343,25 @@ void state_await_connector_lock(Event event) {
 
         case E_STATION_STATUS_UPDATED:
 
-            // Check for error conditions from station
-            if ( error_condition() ) {
+            if ( station_is_reporting_station_malfunction() ) {
                 disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting station malfunction\n");
                 state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_battery_incompatibility() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_charging_system_malfunction() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                state = state_error;
+                break;
             }
 
             // check if lock is complete
@@ -433,7 +462,28 @@ void state_await_insulation_test(Event event) {
             break;
 
         case E_STATION_STATUS_UPDATED:
-            // FIXME
+
+            if ( station_is_reporting_station_malfunction() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting station malfunction\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_battery_incompatibility() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_charging_system_malfunction() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                state = state_error;
+                break;
+            }
+
             break;
 
         case E_CHARGE_INHIBIT_ENABLED:
@@ -523,9 +573,23 @@ void state_energy_transfer(Event event) {
 
         case E_STATION_STATUS_UPDATED:
 
-            // Check for error conditions from station
-            if ( error_condition() ) {
+            if ( station_is_reporting_station_malfunction() ) {
                 disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting station malfunction\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_battery_incompatibility() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
+                state = state_error;
+                break;
+            }
+
+            if ( station_is_reporting_charging_system_malfunction() ) {
+                disable_send_outbound_CAN_messages();
+                printf("Switching to state : error, reason : station reporting system malfunction\n");
                 state = state_error;
                 break;
             }
