@@ -79,26 +79,59 @@ typedef struct {
 // Station
 
 typedef struct {
-    // capabilites
+
+    clock_t lastHeartbeat;
+
+    /*
+     * Station capabilites
+     */
+
     bool weldDetectionSupported;
     uint16_t maximumVoltageAvailable;
     uint8_t availableCurrent;
     uint16_t thresholdVoltage; // evse reporting to car what it considers to be voltage to terminate charging
 
-    // status
+    /*
+     * Station status
+     */
+
     uint8_t controlProtocolNumber;
     uint16_t outputVoltage;
     uint8_t outputCurrent;
     uint8_t timeRemainingSeconds;
     uint8_t timeRemainingMinutes;
+
+    // Indicates when station is outputting current. false == no, true == yes.
     bool stationStatus;
+
+    /* Station reporting an error
+     *   - Short circuit, earth fault in the charger
+     *   - Malfunction of connector lock circuit
+     *   - Emergency stop button pressed
+     */
     bool stationMalfunction;
+
+    // Status of whether plug is locked to vehicle
     bool vehicleConnectorLock;
+
+    /* Voltage required by car higher than what the station can provide
+     *   > we must disable CP3/OUT1 when true
+     */
     bool batteryIncompatability;
+
+    /* Fault which originates at the charger
+     *   - DC short circuit, DC earth fault
+     *   - Timeout
+     *   - CAN reception error
+     *   - Measured voltage < 50V after d2 on.
+     *   - Car requesting more current than station can provide
+     *   - On-board battery continues to apply voltage to the main circuit after the termination of charging.
+     *   - DC voltage exceeds threshold voltage
+     *   > we must disable CP3/OUT1 when true
+     */
     bool chargingSystemMalfunction;
     bool chargerStopControl;
     
-    clock_t lastHeartbeat;
 } Station;
 
 
