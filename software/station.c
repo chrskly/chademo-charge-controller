@@ -27,7 +27,7 @@
 #include "types.h"
 
 extern Station station;
-extern ChademoState state;
+extern State state;
 
 
 /*

@@ -33,38 +33,38 @@
  */
 
 void gpio_callback(uint gpio, uint32_t events) {
-    extern ChademoState chademoState;
+    extern State state;
 
     if ( gpio == CHADEMO_IN1_PIN ) {
         if ( gpio_get(CHADEMO_IN1_PIN) == 1 ) {
-            chademoState(E_IN1_ACTIVATED);
+            state(E_IN1_ACTIVATED);
         } else {
-            chademoState(E_IN1_DEACTIVATED);
+            state(E_IN1_DEACTIVATED);
         }
     }
 
     if ( gpio == CHADEMO_IN2_PIN ) {
         if ( gpio_get(CHADEMO_IN2_PIN) == 0 ) {
-            chademoState(E_IN2_ACTIVATED);
+            state(E_IN2_ACTIVATED);
         } else {
-            chademoState(E_IN2_DEACTIVATED);
+            state(E_IN2_DEACTIVATED);
         }
     }
 
     if ( gpio == CHADEMO_CS_PIN ) {
         if ( gpio_get(CHADEMO_CS_PIN) == 0 ) {
-            chademoState(E_PLUG_INSERTED);
+            state(E_PLUG_INSERTED);
         } else {
-            chademoState(E_PLUG_REMOVED);
+            state(E_PLUG_REMOVED);
         }
     }
 
     // Listen to CHARGE_INHIIT signal from BMS
     if ( gpio == CHARGE_INHIBIT_PIN ) {
         if ( gpio_get(CHARGE_INHIBIT_PIN) == 0 ) {
-            chademoState(E_CHARGE_INHIBIT_ENABLED);
+            state(E_CHARGE_INHIBIT_ENABLED);
         } else {
-            chademoState(E_CHARGE_INHIBIT_DISABLED);
+            state(E_CHARGE_INHIBIT_DISABLED);
         }
     }
 

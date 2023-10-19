@@ -17,8 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHADEMOSTATEMACHINE_H
-#define CHADEMOSTATEMACHINE_H
+#ifndef STATEMACHINE_H
+#define STATEMACHINE_H
 
 typedef enum {
     E_PLUG_INSERTED,
@@ -34,19 +34,19 @@ typedef enum {
     E_CHARGE_INHIBIT_DISABLED,
     E_BMS_LIVENESS_CHECK_FAILED,
     E_STATION_LIVENESS_CHECK_FAILED
-} ChademoEvent;
+} Event;
 
 
-typedef void (*ChademoState)(ChademoEvent);
+typedef void (*State)(Event);
 
-void state_idle(ChademoEvent event);
-void state_plug_in(ChademoEvent event);
-void state_handshaking(ChademoEvent event);
-void state_await_connector_lock(ChademoEvent event);
-void state_await_insulation_test(ChademoEvent event);
-void state_energy_transfer(ChademoEvent event);
-void state_winding_down(ChademoEvent event);
-void state_charge_inhibited(ChademoEvent event);
-void state_error(ChademoEvent event);
+void state_idle(Event event);
+void state_plug_in(Event event);
+void state_handshaking(Event event);
+void state_await_connector_lock(Event event);
+void state_await_insulation_test(Event event);
+void state_energy_transfer(Event event);
+void state_winding_down(Event event);
+void state_charge_inhibited(Event event);
+void state_error(Event event);
 
 #endif

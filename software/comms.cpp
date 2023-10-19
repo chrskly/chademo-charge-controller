@@ -33,7 +33,7 @@ extern "C" {
 #include "types.h"
 
 extern MCP2515 mainCAN;
-extern ChademoState state;
+extern State state;
 extern BMS bms;
 
 struct can_frame mainCANInboundFrame;

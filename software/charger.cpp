@@ -83,7 +83,7 @@ MCP2515 chademoCAN(SPI_PORT, CHADEMO_CAN_CS, SPI_MISO, SPI_MOSI, SPI_CLK, 500000
 
 
 Charger charger;
-ChademoState state;
+State state;
 Station station;
 BMS bms;
 Battery battery;

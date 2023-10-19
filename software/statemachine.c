@@ -26,7 +26,7 @@
 #include "chademocomms.h"
 #include "inputs.h"
 
-extern ChademoState state;
+extern State state;
 
 
 /*
@@ -40,7 +40,7 @@ extern ChademoState state;
  * Plug locked : no
  *
  */
-void state_idle(ChademoEvent event) {
+void state_idle(Event event) {
 
     switch (event) {
 
@@ -108,7 +108,7 @@ void state_idle(ChademoEvent event) {
  *  => idle
  *     - plug removed
  */
-void state_plug_in(ChademoEvent event) {
+void state_plug_in(Event event) {
 
     switch (event) {
 
@@ -193,7 +193,7 @@ void state_plug_in(ChademoEvent event) {
  *  - Vehicle charging enabled (0x102)
  *
  */
-void state_handshaking(ChademoEvent event) {
+void state_handshaking(Event event) {
 
     switch (event) {
 
@@ -295,7 +295,7 @@ void state_handshaking(ChademoEvent event) {
  * Plug locked : no
  * 
  */
-void state_await_connector_lock(ChademoEvent event) {
+void state_await_connector_lock(Event event) {
 
     switch (event) {
 
@@ -381,7 +381,7 @@ void state_await_connector_lock(ChademoEvent event) {
  * Plug locked : yes
  *
  */
-void state_await_insulation_test(ChademoEvent event) {
+void state_await_insulation_test(Event event) {
 
     switch (event) {
 
@@ -469,7 +469,7 @@ void state_await_insulation_test(ChademoEvent event) {
  * Plug locked : yes
  *
  */
-void state_energy_transfer(ChademoEvent event) {
+void state_energy_transfer(Event event) {
 
     switch (event) {
 
@@ -566,7 +566,7 @@ void state_energy_transfer(ChademoEvent event) {
  * Plug locked : yes
  *
  */
-void state_winding_down(ChademoEvent event) {
+void state_winding_down(Event event) {
 
     switch (event) {
 
@@ -619,7 +619,7 @@ void state_winding_down(ChademoEvent event) {
  *   - CHARGE_INHIBIT signal from BMS has been activated
  *
  */
-void state_charge_inhibited(ChademoEvent event) {
+void state_charge_inhibited(Event event) {
 
     switch (event) {
 
@@ -696,7 +696,7 @@ void state_charge_inhibited(ChademoEvent event) {
  *   - station compatability issue (voltage)
  *   - station reporting a fault
  */
-void state_error(ChademoEvent event) {
+void state_error(Event event) {
 
     switch (event) {
 

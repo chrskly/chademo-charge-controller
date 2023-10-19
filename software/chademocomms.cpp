@@ -36,7 +36,7 @@ extern Battery battery;
 extern MCP2515 chademoCAN;
 extern Station station;
 extern BMS bms;
-extern ChademoState state;
+extern State state;
 
 /*
  * ID : 0x100

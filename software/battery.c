@@ -28,7 +28,7 @@
 
 extern BMS bms;
 extern Battery battery;
-extern ChademoState state;
+extern State state;
 
 //
 // BMS
