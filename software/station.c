@@ -67,7 +67,6 @@ void reinitialise_station() {
     station.controlProtocolNumber = 0;
     station.maximumVoltageAvailable = 0;
     station.availableCurrent = 0;
-    // FIXME check actual local status here
     station.vehicleConnectorLock = false;
 }
 
@@ -112,9 +111,6 @@ bool station_is_reporting_charging_system_malfunction() {
 bool station_is_allowing_charge() {
     return station.chargerStopControl;
 }
-
-
-
 
 
 
