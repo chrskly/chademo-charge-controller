@@ -23,7 +23,7 @@
 #include "battery.h"
 #include "util.h"
 #include "settings.h"
-#include "chademostatemachine.h"
+#include "statemachine.h"
 #include "types.h"
 
 extern BMS bms;

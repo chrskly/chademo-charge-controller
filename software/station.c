@@ -20,8 +20,8 @@
 #include <time.h>
 #include <stdio.h>
 
-#include "chademostation.h"
-#include "chademostatemachine.h"
+#include "station.h"
+#include "statemachine.h"
 #include "util.h"
 #include "settings.h"
 #include "types.h"

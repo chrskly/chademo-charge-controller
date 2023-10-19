@@ -25,7 +25,7 @@
 #include "chademo.h"
 #include "util.h"
 #include "battery.h"
-#include "chademostation.h"
+#include "station.h"
 #include "settings.h"
 
 #include "types.h"

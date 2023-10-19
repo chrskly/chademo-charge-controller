@@ -19,9 +19,9 @@
 
 #include <stdio.h>
 
-#include "chademostatemachine.h"
+#include "statemachine.h"
 #include "battery.h"
-#include "chademostation.h"
+#include "station.h"
 #include "chademo.h"
 #include "chademocomms.h"
 #include "inputs.h"
@@ -426,6 +426,14 @@ void chademo_state_await_insulation_test(ChademoEvent event) {
             printf("Switching to state : idle, reason : plug removed\n");
             chademo_reinitialise();
             state = chademo_state_idle;
+            break;
+
+        case E_STATION_CAPABILITIES_UPDATED:
+            // FIXME
+            break;
+
+        case E_STATION_STATUS_UPDATED:
+            // FIXME
             break;
 
         case E_CHARGE_INHIBIT_ENABLED:

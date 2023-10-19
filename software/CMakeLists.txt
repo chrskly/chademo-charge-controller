@@ -25,10 +25,10 @@ add_executable(charger
         chademo.h
         chademocomms.cpp
         chademocomms.h
-        chademostatemachine.c
-        chademostatemachine.h
-        chademostation.c
-        chademostation.h
+        statemachine.c
+        statemachine.h
+        station.c
+        station.h
         charger.cpp
         charger.h
         comms.cpp

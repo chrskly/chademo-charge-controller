@@ -27,7 +27,7 @@ using namespace std;
 extern "C" {
 #include "settings.h"
 #include "battery.h"
-#include "chademostatemachine.h"
+#include "statemachine.h"
 }
 
 #include "types.h"

@@ -38,7 +38,7 @@ extern "C" {
     #include "battery.h"
     #include "settings.h"
     #include "chademo.h"
-    #include "chademostatemachine.h"
+    #include "statemachine.h"
     #include "dhcpserver.h"
     #include "dnsserver.h"
 }

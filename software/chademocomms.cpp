@@ -23,8 +23,8 @@
 #include "mcp2515/mcp2515.h"
 
 extern "C" {
-#include "chademostation.h"
-#include "chademostatemachine.h"
+#include "station.h"
+#include "statemachine.h"
 #include "settings.h"
 #include "chademo.h"
 #include "battery.h"
