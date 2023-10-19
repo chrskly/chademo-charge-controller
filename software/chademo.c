@@ -368,38 +368,3 @@ void initiate_shutdown() {
 
 }
 
-
-
-/*
- * Check for error conditions. Return true if error is present.
- */
-bool error_condition() {
-
-    // Check for control protocol compatibility (controlProtocolNumber)
-    if ( CHADEMO_PROTOCOL_VERSION > station.controlProtocolNumber ) {
-        printf("ERROR : chademo protocol version mismatch. Stopping\n");
-        return true;
-    }
-
-    // Fail out if the charging station has reported a malfunction (stationMalfunction)
-    if ( station_is_reporting_station_malfunction() ) {
-        printf("ERROR : station is reporting a malfunction. Stopping\n");
-        return true;
-    }
-
-    // Fail out if the charging station has reported a battery incompatability (batteryIncompatability)
-    if ( station_is_reporting_battery_incompatibility() ) {
-        printf("ERROR : station is reporting a battery incompatiblity. Stopping\n");
-        return true;
-    }
-
-    // Fail out if the charging station has reported a malfunction with the car (chargingSystemMalfunction)
-    if ( station_is_reporting_charging_system_malfunction() ) {
-        printf("ERROR : station is reporting a charging system malfunction. Stopping\n");
-        return true;
-    }
-
-    return false;
-
-}
-
