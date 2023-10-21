@@ -130,6 +130,8 @@ typedef struct {
      *   > we must disable CP3/OUT1 when true
      */
     bool chargingSystemMalfunction;
+
+    // Station wants to wind down the charging session.
     bool chargerStopControl;
     
 } Station;
