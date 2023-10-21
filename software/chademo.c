@@ -283,7 +283,7 @@ uint8_t generate_vehicle_status_byte() {
         chademo.vehicleChargingEnabled |
         chademo.vehicleNotInPark << 1 |
         chademo.vehicleChargingSystemFault << 2 |
-        contactors_are_closed() << 3 |
+        contactors_are_allowed_to_close() << 3 |
         chademo.vehicleRequestingStop
     );
 }
@@ -357,7 +357,7 @@ void signal_charge_go_ahead() {
 /*
  * Car wants to initiate a shut down of the charging process.
  */
-void initiate_shutdown() {
+void signal_charge_stop() {
 
     // Communicate over CAN that the car wants to shut down
     chademo.vehicleChargingEnabled = false;

@@ -137,6 +137,8 @@ void state_plug_in(Event event) {
             reinitialise_station();
             // Begin sending vehicle state over CAN to station
             enable_send_outbound_CAN_messages();
+            // Signal to station that car gives permission to charge
+            activate_out1();
             enable_station_liveness_check();
             state = state_handshaking;
             break;
@@ -173,7 +175,7 @@ void state_plug_in(Event event) {
  *
  * IN1/CP      : activated
  * IN2/CP2     : deactivated
- * OUT1/CP3    : deactivated
+ * OUT1/CP3    : activated
  * OUT2/cont   : deactivated
  * CS          : activated
  * Plug locked : no
@@ -200,7 +202,7 @@ void state_handshaking(Event event) {
         case E_IN1_DEACTIVATED:
 
             printf("Switching to state : plug_in, reason : IN1/CP signal was disabled\n");
-            initiate_shutdown();
+            signal_charge_stop();
             state = state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
@@ -225,7 +227,7 @@ void state_handshaking(Event event) {
 
             // Can the charger provide us with enough voltage?
             if ( ! chademo_station_voltage_sufficient() ) {
-                initiate_shutdown();
+                signal_charge_stop();
                 printf("Switching to state : error, reason : station cannot supply sufficient voltage\n");
                 state = state_error;
                 break;
@@ -315,7 +317,7 @@ void state_await_connector_lock(Event event) {
 
         case E_IN1_DEACTIVATED:
 
-            initiate_shutdown();
+            signal_charge_stop();
             printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
             state = state_plug_in;
 
@@ -374,7 +376,7 @@ void state_await_connector_lock(Event event) {
 
         case E_PLUG_REMOVED:
 
-            initiate_shutdown();
+            signal_charge_stop();
             chademo_reinitialise();
             state = state_idle;
             break;
@@ -417,7 +419,7 @@ void state_await_insulation_test(Event event) {
         case E_IN1_DEACTIVATED:
 
             printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
-            initiate_shutdown();
+            signal_charge_stop();
             state = state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
@@ -442,7 +444,6 @@ void state_await_insulation_test(Event event) {
          */
         case E_IN2_ACTIVATED:
 
-            // close contactors
             printf("Switching to state : energy_transfer, reason : IN2/CP2 activated\n");
             permit_contactor_close();
             state = state_energy_transfer;  
@@ -530,7 +531,7 @@ void state_energy_transfer(Event event) {
             // Stop charging if the BMS says the battery is full
             if ( battery_is_full() ) {
                 printf("Switching to state : winding down, reason : battery full\n");
-                initiate_shutdown();
+                signal_charge_stop();
                 state = state_winding_down;
                 break;
             }
@@ -538,7 +539,7 @@ void state_energy_transfer(Event event) {
             // Battery is too hot, got straight to inhibited state
             if ( battery_is_too_hot() ) {
                 printf("Switching to state : charge_inhibited, reason : battery is too hot\n");
-                initiate_shutdown();
+                signal_charge_stop();
                 state = state_charge_inhibited;
             }
 

@@ -44,7 +44,7 @@ void permit_contactor_close();
 void inhibit_contactor_close();
 bool contactors_are_allowed_to_close();
 void signal_charge_go_ahead();
-void initiate_shutdown();
+void signal_charge_stop();
 bool error_condition();
 
 #endif
