@@ -99,8 +99,6 @@
  * Battery settings
  */
 
-#define BATTERY_MAX_VOLTAGE 350         // fixme put in proper value
-
 // The SoC at which to stop fast-charging. Can be overriden via CAN msg.
 #define BATTERY_FAST_CHARGE_DEFAULT_SOC_MAX 80
 

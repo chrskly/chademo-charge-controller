@@ -112,7 +112,7 @@ bool battery_is_full() {
     if ( bms.highCellAlarm ) {
         return true;
     }
-    if ( bms.voltage >= BATTERY_MAX_VOLTAGE ) {
+    if ( bms.voltage >= bms.maximumVoltage ) {
         return true;
     }
     return false;
