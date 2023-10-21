@@ -73,6 +73,8 @@
 // This scaling factor is used to calculate max charging time from the estimated charging time
 #define MAX_CHARGING_TIME_SCALING_FACTOR 1.2
 
+#define CALCULATE_TIME_REMAINING_BASED_ON ah
+
 
 /*
  * General BMS settings

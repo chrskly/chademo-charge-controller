@@ -83,12 +83,12 @@ uint8_t battery_get_voltage_from_soc(uint8_t soc) {
 /*
  * Based on our SoC and a given charge current, calculate how many minutes we
  * think it will take to charge to the specified SoC.
- *
- * FIXME : this is not correct
  */
-void battery_recalculate_charging_time_minutes(uint8_t current, uint8_t targetSoc) {
 
-    uint16_t whRemaining = battery.capacityWH - ( battery.capacityWH * targetSoc );
+// Calculate based on watt-hours
+void battery_recalculate_charging_time_minutes_by_wh(uint8_t current, uint8_t targetSoc) {
+
+    uint16_t whRemaining = battery.capacityWH - ( battery.capacityWH * bms.soc );
 
     /* Use the average voltage between the current pack voltage and the pack
      * voltage at the target SoC to get a more accurate estimate.
@@ -96,6 +96,15 @@ void battery_recalculate_charging_time_minutes(uint8_t current, uint8_t targetSo
     uint32_t chargingWatts = current * battery_get_voltage_from_soc( ( bms.soc + targetSoc ) / 2 );
 
     battery.chargingTimeMinutes = (uint8_t)( whRemaining / chargingWatts / 60 );
+    battery.chargingTimeMinutesMax = battery.chargingTimeMinutes * MAX_CHARGING_TIME_SCALING_FACTOR;
+}
+
+// Calculate based on amp-hours
+void battery_recalculate_charging_time_minutes_by_ah(uint8_t current, uint8_t targetSoc) {
+
+    uint16_t ahRemaining = battery.capacityAH - ( battery.capacityAH * bms.soc );
+
+    battery.chargingTimeMinutes = (uint8_t)( ahRemaining / current / 60 );
     battery.chargingTimeMinutesMax = battery.chargingTimeMinutes * MAX_CHARGING_TIME_SCALING_FACTOR;
 }
 
