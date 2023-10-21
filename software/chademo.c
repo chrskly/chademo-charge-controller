@@ -102,7 +102,7 @@ void recalculate_charging_current_request() {
     clock_t now = get_clock();
 
     // Get the new limits from the BMS and station
-    uint8_t chargingCurrentCeiling = fmin(battery.targetChargingCurrent, station.availableCurrent);
+    uint8_t chargingCurrentCeiling = fmin(bms.maximumChargeCurrent, station.availableCurrent);
 
     /*
      * If the output voltage being reported by the station is less than the

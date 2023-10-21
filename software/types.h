@@ -34,10 +34,6 @@ typedef struct {
     uint8_t chargingTimeMinutes;
     uint8_t chargingTimeMinutesMax;
 
-    // This is the current (amps) to request from the station. This value
-    // only factors in any limits placed on us by the BMS.
-    uint8_t targetChargingCurrent;
-
     // Rated capacity of the battery.
     uint16_t capacityWH;
     uint16_t capacityAH;
