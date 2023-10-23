@@ -32,6 +32,8 @@ bool station_is_reporting_battery_incompatibility();
 bool station_is_reporting_station_malfunction();
 bool station_is_reporting_charging_system_malfunction();
 bool station_is_allowing_charge();
+uint16_t station_get_voltage();
+uint8_t station_get_current();
 
 
 #endif

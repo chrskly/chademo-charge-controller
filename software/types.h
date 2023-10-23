@@ -79,7 +79,7 @@ typedef struct {
     clock_t lastHeartbeat;
 
     /*
-     * Station capabilites
+     * Station capabilites message fields
      */
 
     bool weldDetectionSupported;
@@ -88,7 +88,7 @@ typedef struct {
     uint16_t thresholdVoltage; // evse reporting to car what it considers to be voltage to terminate charging
 
     /*
-     * Station status
+     * Station status message fields
      */
 
     uint8_t controlProtocolNumber;
@@ -97,7 +97,10 @@ typedef struct {
     uint8_t timeRemainingSeconds;
     uint8_t timeRemainingMinutes;
 
-    // Indicates when station is outputting current. false == no, true == yes.
+    /* Indicates when station is outputting current.
+     * false == no, true == yes.
+     * False during insulation test.
+     */
     bool stationStatus;
 
     /* Station reporting an error
@@ -127,7 +130,9 @@ typedef struct {
      */
     bool chargingSystemMalfunction;
 
-    // Station wants to wind down the charging session.
+    /* Station wants to wind down the charging session.
+     * true == don't charge, false == charge
+     */
     bool chargerStopControl;
     
 } Station;
@@ -169,6 +174,14 @@ typedef struct {
     bool vehicleRequestingStop;
 
     TerminationCondition terminationCondition;
+
+    /* Use this during weld check to tell whether we're waiting for the
+     * contactors to turn on or off.
+     */
+    bool weldCheckPendingSwitchOn;
+
+    uint8_t weldCheckCycles;
+
 } Chademo;
 
 

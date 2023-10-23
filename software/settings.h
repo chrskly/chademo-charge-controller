@@ -73,7 +73,19 @@
 // This scaling factor is used to calculate max charging time from the estimated charging time
 #define MAX_CHARGING_TIME_SCALING_FACTOR 1.2
 
-#define CALCULATE_TIME_REMAINING_BASED_ON ah
+/* Specify whether to use amp-hours (ah) or watt-hours (wh) to estimate how much
+ * time is left to complete charging.
+ */
+#define CALCULATE_TIME_REMAINING_BASED_ON 'ah'
+
+/* The energy transfer stage is complete when the current drops below this value.
+ */
+#define TERMINATION_CURRENT 5
+
+/* How long we wait for the contactors to open/close when we're doing weld
+ * detection. If it takes longer than this, we consider the contactors welded.
+ */
+#define WELD_CHECK_TTL 1000 // units = ms
 
 
 /*

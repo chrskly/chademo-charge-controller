@@ -25,6 +25,7 @@
 #include "chademo.h"
 #include "chademocomms.h"
 #include "inputs.h"
+#include "settings.h"
 
 extern State state;
 
@@ -70,6 +71,7 @@ void state_idle(Event event) {
         case E_CHARGE_INHIBIT_ENABLED:
 
             printf("Switching to state : charge_inhibited, reason : received charge_inhibit input signal\n");
+            signal_charge_stop_digital();
             state = state_charge_inhibited;
             break;
 
@@ -202,7 +204,7 @@ void state_handshaking(Event event) {
         case E_IN1_DEACTIVATED:
 
             printf("Switching to state : plug_in, reason : IN1/CP signal was disabled\n");
-            signal_charge_stop();
+            signal_charge_stop_digital();
             state = state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
@@ -227,16 +229,17 @@ void state_handshaking(Event event) {
 
             // Can the charger provide us with enough voltage?
             if ( ! chademo_station_voltage_sufficient() ) {
-                signal_charge_stop();
                 printf("Switching to state : error, reason : station cannot supply sufficient voltage\n");
+                signal_charge_stop_digital();
                 state = state_error;
                 break;
             }
 
             // If we have received all of the params we need from the station, move to the next step
             if ( initial_parameter_exchange_with_station_complete() ) {
-                signal_charge_go_ahead();
                 printf("Switching to state : await_connector_lock, reason : initial param exchange complete\n");
+                signal_charge_go_ahead_digital();
+                signal_charge_go_ahead_discrete();
                 state = state_await_connector_lock;
                 break;
             }
@@ -268,8 +271,9 @@ void state_handshaking(Event event) {
 
             // If we have received all of the params we need from the station, move to the next step
             if ( initial_parameter_exchange_with_station_complete() ) {
-                signal_charge_go_ahead();
                 printf("Switching to state : await_connector_lock, reason : initial param exchange complete\n");
+                signal_charge_go_ahead_digital();
+                signal_charge_go_ahead_discrete();
                 state = state_await_connector_lock;
                 break;
             }
@@ -317,7 +321,7 @@ void state_await_connector_lock(Event event) {
 
         case E_IN1_DEACTIVATED:
 
-            signal_charge_stop();
+            signal_charge_stop_digital();
             printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
             state = state_plug_in;
 
@@ -376,7 +380,7 @@ void state_await_connector_lock(Event event) {
 
         case E_PLUG_REMOVED:
 
-            signal_charge_stop();
+            signal_charge_stop_digital();
             chademo_reinitialise();
             state = state_idle;
             break;
@@ -419,13 +423,14 @@ void state_await_insulation_test(Event event) {
         case E_IN1_DEACTIVATED:
 
             printf("Switching to state : plug_in, reason : disabled IN1/CP signal\n");
-            signal_charge_stop();
+            signal_charge_stop_digital();
             state = state_plug_in;
 
         case E_BMS_UPDATE_RECEIVED:
 
             if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
                 printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
+                signal_charge_stop_digital();
                 state = state_charge_inhibited;
                 break;
             }
@@ -435,6 +440,7 @@ void state_await_insulation_test(Event event) {
         case E_BMS_LIVENESS_CHECK_FAILED:
 
             printf("Switching to state : error, reason : communication timeout with BMS\n");
+            signal_charge_stop_digital();
             state = state_error;
 
             break;
@@ -455,6 +461,7 @@ void state_await_insulation_test(Event event) {
 
             printf("Switching to state : idle, reason : plug removed\n");
             chademo_reinitialise();
+            signal_charge_stop_digital();
             state = state_idle;
             break;
 
@@ -465,22 +472,22 @@ void state_await_insulation_test(Event event) {
         case E_STATION_STATUS_UPDATED:
 
             if ( station_is_reporting_station_malfunction() ) {
-                disable_send_outbound_CAN_messages();
                 printf("Switching to state : error, reason : station reporting station malfunction\n");
+                signal_charge_stop_digital();
                 state = state_error;
                 break;
             }
 
             if ( station_is_reporting_battery_incompatibility() ) {
-                disable_send_outbound_CAN_messages();
                 printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
+                signal_charge_stop_digital();
                 state = state_error;
                 break;
             }
 
             if ( station_is_reporting_charging_system_malfunction() ) {
-                disable_send_outbound_CAN_messages();
                 printf("Switching to state : error, reason : station reporting system malfunction\n");
+                signal_charge_stop_digital();
                 state = state_error;
                 break;
             }
@@ -489,12 +496,15 @@ void state_await_insulation_test(Event event) {
 
         case E_CHARGE_INHIBIT_ENABLED:
 
-            // FIXME how do we exit safely from here? send error msg?
+            printf("Switching to state : charge_inhibited, reason : received charge_inhibit input signal\n");
+            signal_charge_stop_digital();
             state = state_charge_inhibited;
+            break;
 
         case E_STATION_LIVENESS_CHECK_FAILED:
 
             printf("Switching to state : error, reason : communication timeout with station\n");
+            signal_charge_stop_digital();
             state = state_error;
             break;
 
@@ -531,7 +541,7 @@ void state_energy_transfer(Event event) {
             // Stop charging if the BMS says the battery is full
             if ( battery_is_full() ) {
                 printf("Switching to state : winding down, reason : battery full\n");
-                signal_charge_stop();
+                signal_charge_stop_digital();
                 state = state_winding_down;
                 break;
             }
@@ -539,7 +549,7 @@ void state_energy_transfer(Event event) {
             // Battery is too hot, got straight to inhibited state
             if ( battery_is_too_hot() ) {
                 printf("Switching to state : charge_inhibited, reason : battery is too hot\n");
-                signal_charge_stop();
+                signal_charge_stop_ditigal();
                 state = state_charge_inhibited;
             }
 
@@ -574,24 +584,31 @@ void state_energy_transfer(Event event) {
 
         case E_STATION_STATUS_UPDATED:
 
+            // Station is signalling over CAN that it wants to stop charging
+            if ( ! station_is_allowing_charge() ) {
+                printf("Switching to state : winding_down, reason : station has requested charge termination\n");
+                signal_charge_stop_digital();
+                state = state_winding_down;
+            }
+
             if ( station_is_reporting_station_malfunction() ) {
-                disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting station malfunction\n");
-                state = state_error;
+                printf("Switching to state : winding_down, reason : station reporting station malfunction\n");
+                signal_charge_stop_digital();
+                state = state_winding_down;
                 break;
             }
 
             if ( station_is_reporting_battery_incompatibility() ) {
-                disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting battery incompatiblity\n");
-                state = state_error;
+                printf("Switching to state : winding_down, reason : station reporting battery incompatiblity\n");
+                signal_charge_stop_digital();
+                state = state_winding_down;
                 break;
             }
 
             if ( station_is_reporting_charging_system_malfunction() ) {
-                disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting system malfunction\n");
-                state = state_error;
+                printf("Switching to state : winding_down, reason : station reporting system malfunction\n");
+                signal_charge_stop_digital();
+                state = state_winding_down;
                 break;
             }
 
@@ -599,13 +616,15 @@ void state_energy_transfer(Event event) {
 
         case E_CHARGE_INHIBIT_ENABLED:
 
-            // FIXME how do we exit safely from here? send error msg?
-            state = state_charge_inhibited;
+            printf("Switching to state : winding_down, reason : received charge_inhibit input signal\n");
+            signal_charge_stop_digital();
+            state = state_winding_down;
+            break;
 
         case E_STATION_LIVENESS_CHECK_FAILED:
 
             printf("Switching to state : error, reason : communication timeout with station\n");
-            // FIXME what else do we need to do here?
+            signal_charge_stop_digital();
             state = state_error;
             break;
 
@@ -633,22 +652,29 @@ void state_energy_transfer(Event event) {
  */
 void state_winding_down(Event event) {
 
+    // No matter the event, always process the ramp down
+    ramp_down_current_request();
+
     switch (event) {
 
         case E_BMS_UPDATE_RECEIVED:
-            ramp_down_current_request();
             break;
 
         case E_BMS_LIVENESS_CHECK_FAILED:
-            // We're already shutting down the charging session.
             break;
 
         case E_STATION_CAPABILITIES_UPDATED:
-            ramp_down_current_request();
             break;
 
         case E_STATION_STATUS_UPDATED:
-            ramp_down_current_request();
+
+            // Winding down is complete
+            if ( station_get_current() <= TERMINATION_CURRENT ) {
+                signal_charge_stop_discrete();
+                chademo.weldCheckPendingSwitchOn = false;
+                inhibit_contactor_close();
+                chademo.weldCheckCycles = 0;
+            }
             break;
 
         case E_PLUG_REMOVED:
@@ -666,6 +692,72 @@ void state_winding_down(Event event) {
     }
 
 }
+
+
+/*
+ * State : weld_detection
+ *
+ * IN1/CP      : activated
+ * IN2/CP2     : activated
+ * OUT1/CP3    : deactivated
+ * OUT2/cont   : activated
+ * CS          : activated
+ * Plug locked : yes
+ *
+ */
+void state_weld_detection(Event event) {
+
+    switch (event) {
+
+        case E_BMS_UPDATE_RECEIVED:
+            break;
+
+        case E_BMS_LIVENESS_CHECK_FAILED:
+            break;
+
+        case E_STATION_CAPABILITIES_UPDATED:
+            break;
+
+        case E_STATION_STATUS_UPDATED:
+
+            // We're waiting for the contactors to turn on
+            if ( chademo.weldCheckPendingSwitchOn ) {
+                if ( station_get_voltage() > ( bms.voltage * 0.9 ) ) {
+                    chademo.weldCheckPendingSwitchOn = false;
+                    chademo.weldCheckCycles += 1;
+                }
+            }
+
+            // We're waiting for the contactors to turn off
+            else {
+                if ( station_get_voltage() < ( bms.voltage * 0.1 ) ) {
+                    chademo.weldCheckPendingSwitchOn = true;
+                    chademo.weldCheckCycles += 1;
+                }
+            }
+
+            if ( chademo.weldCheckCycles > 3 ) {
+                // 102.5.3 high
+                state = state_plug_in;
+            }
+
+            break;
+
+        case E_PLUG_REMOVED:
+            break;
+
+        case E_CHARGE_INHIBIT_ENABLED:
+            break;
+
+        case E_STATION_LIVENESS_CHECK_FAILED:
+            break;
+
+        default:
+            printf("WARNING : received invalid event [%s]\n", event);
+
+    }
+}
+
 
 /*
  * State : charge_inhibited

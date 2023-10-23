@@ -284,10 +284,10 @@ uint8_t generate_battery_status_byte() {
 uint8_t generate_vehicle_status_byte() {
     return (
         0x00 |
-        chademo.vehicleChargingEnabled |
+        chademo.vehicleChargingEnabled |           // "charge permission"
         chademo.vehicleNotInPark << 1 |
         chademo.vehicleChargingSystemFault << 2 |
-        contactors_are_allowed_to_close() << 3 |
+        contactors_are_allowed_to_close() << 3 |   // "vehicle status"
         chademo.vehicleRequestingStop
     );
 }
@@ -346,29 +346,31 @@ bool contactors_are_allowed_to_close() {
 /*
  * Car signals go ahead to start charging
  */
-void signal_charge_go_ahead() {
 
-    // Communicate over CAN that the car is ready to charge
+void signal_charge_go_ahead_digital() {
+    // charge go ahead signal, 102.5.0
     chademo.vehicleChargingEnabled = true;
-    chademo.vehicleRequestingStop = false;
+}
 
+void signal_charge_go_ahead_discrete() {
     // Enable the vehicle 'charge enable' digital signal, a.k.a CP3
     activate_out1();
-
 }
 
 
 /*
  * Car wants to initiate a shut down of the charging process.
  */
-void signal_charge_stop() {
 
-    // Communicate over CAN that the car wants to shut down
+void signal_charge_stop_digital() {
+    // charge go ahead signal, 102.5.0
     chademo.vehicleChargingEnabled = false;
-    chademo.vehicleRequestingStop = true;
+}
 
+void signal_charge_stop_discrete() {
     // Disable the vehicle 'charge enable' digital signal, a.k.a CP3
     deactivate_out1();
-
 }
+
+
 

@@ -112,5 +112,11 @@ bool station_is_allowing_charge() {
     return station.chargerStopControl;
 }
 
+uint16_t station_get_voltage() {
+    return station.outputVoltage;
+}
 
+uint8_t station_get_current() {
+    return station.outputCurrent;
+}
 

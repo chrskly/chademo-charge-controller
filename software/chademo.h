@@ -43,8 +43,10 @@ bool out1_is_active();
 void permit_contactor_close();
 void inhibit_contactor_close();
 bool contactors_are_allowed_to_close();
-void signal_charge_go_ahead();
-void signal_charge_stop();
+void signal_charge_go_ahead_digital();
+void signal_charge_go_ahead_discrete();
+void signal_charge_stop_digital();
+void signal_charge_stop_discrete();
 bool error_condition();
 
 #endif
