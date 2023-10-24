@@ -53,6 +53,8 @@ void state_idle(Event event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
+            chademo_update_max_voltage_value();
+
             // Auxiliary check for CHARGE_INHIBIT condition
             if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
                 printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
@@ -116,6 +118,8 @@ void state_plug_in(Event event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
+            chademo_update_max_voltage_value();
+
             // Auxiliary check for CHARGE_INHIBIT condition
             if ( battery_is_full() || battery_is_too_hot() || battery_is_too_cold() ) {
                 printf("Switching to state : charge_inhibited, reason : aux charge_inhibit check fired\n");
@@ -136,6 +140,7 @@ void state_plug_in(Event event) {
         case E_IN1_ACTIVATED:
 
             printf("Switching to state : handshaking, reason : station enabled IN1/CP signal\n");
+            //FIXME validate value of chademo.maximumVoltage before going ahead
             reinitialise_station();
             // Begin sending vehicle state over CAN to station
             enable_send_outbound_CAN_messages();
@@ -536,8 +541,6 @@ void state_energy_transfer(Event event) {
 
         case E_BMS_UPDATE_RECEIVED:
 
-            recalculate_charging_current_request();
-
             // Stop charging if the BMS says the battery is full
             if ( battery_is_full() ) {
                 printf("Switching to state : winding down, reason : battery full\n");
@@ -552,6 +555,8 @@ void state_energy_transfer(Event event) {
                 signal_charge_stop_ditigal();
                 state = state_charge_inhibited;
             }
+
+            recalculate_charging_current_request();
 
             break;
 

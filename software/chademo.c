@@ -47,7 +47,10 @@ void chademo_reinitialise() {
 
     // Set the target state-of-charge and voltage
     chademo.targetSoc = BATTERY_FAST_CHARGE_DEFAULT_SOC_MAX;
-    chademo.targetVoltage = battery_get_voltage_from_soc(BATTERY_FAST_CHARGE_DEFAULT_SOC_MAX);
+    //chademo.targetVoltage = battery_get_voltage_from_soc(BATTERY_FAST_CHARGE_DEFAULT_SOC_MAX);
+
+    // Will be updated with value from BMS
+    chademo.maximumVoltage = 0;
 }
 
 
@@ -78,6 +81,10 @@ bool in_constant_voltage_window() {
 
 float chademo_get_target_voltage() {
     return chademo.targetVoltage;
+}
+
+void chademo_update_max_voltage_value() {
+    chademo.maximumVoltage = bms.maximumVoltage;
 }
 
 // Can the station provide enough voltage to charge out battery?
@@ -288,7 +295,7 @@ uint8_t generate_vehicle_status_byte() {
         chademo.vehicleNotInPark << 1 |
         chademo.vehicleChargingSystemFault << 2 |
         contactors_are_allowed_to_close() << 3 |   // "vehicle status"
-        chademo.vehicleRequestingStop
+        chademo.vehicleRequestingStop << 4
     );
 }
 

@@ -164,14 +164,21 @@ typedef struct {
     // The battery voltage at which to stop charging
     float targetVoltage;
 
+    /* This is the maximum battery voltage we communicate to the station in
+     * message 100.4,5. Used by the station to set 'threshold voltage'. This
+     * value should not be updated after switch k is turned on. I.e., after
+     * vehicle gives go ahead signal. Value updated from BMS prior to that.
+     */
+    float maximumVoltage;
+
     // The SoC at which to stop charging.
     uint8_t targetSoc;
 
     // Flags that we send to the charget in the 0x102 message (vehicle status)
-    bool vehicleChargingEnabled;
-    bool vehicleNotInPark;
-    bool vehicleChargingSystemFault;
-    bool vehicleRequestingStop;
+    bool vehicleChargingEnabled;     // 102.5.0
+    bool vehicleNotInPark;           // 102.5.1
+    bool vehicleChargingSystemFault; // 102.5.2
+    bool vehicleRequestingStop;      // 102.5.3
 
     TerminationCondition terminationCondition;
 
