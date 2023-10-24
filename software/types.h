@@ -189,6 +189,12 @@ typedef struct {
 
     uint8_t weldCheckCycles;
 
+    /* Track whether the "Present output current" and "Charging current request"
+     * deviate by too much for too long.
+     */
+    bool currentDeviationError;
+    clock_t currentDeviationErrorTimer;
+
 } Chademo;
 
 

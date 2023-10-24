@@ -543,17 +543,19 @@ void state_energy_transfer(Event event) {
 
             // Stop charging if the BMS says the battery is full
             if ( battery_is_full() ) {
+                // Note : 'Battery Overvoltage' flag will also be set automatically here (102.4.0)
                 printf("Switching to state : winding down, reason : battery full\n");
                 signal_charge_stop_digital();
                 state = state_winding_down;
                 break;
             }
 
-            // Battery is too hot, got straight to inhibited state
+            // Stop charging if the BMS says the battery is too hot
             if ( battery_is_too_hot() ) {
+                // Note : 'High Battery Temperature' flag will also be set automatically here (102.4.3)
                 printf("Switching to state : charge_inhibited, reason : battery is too hot\n");
-                signal_charge_stop_ditigal();
-                state = state_charge_inhibited;
+                signal_charge_stop_digital();
+                state = state_winding_down;
             }
 
             recalculate_charging_current_request();
@@ -617,6 +619,8 @@ void state_energy_transfer(Event event) {
                 break;
             }
 
+            check_for_current_deviation_error();
+
             break;
 
         case E_CHARGE_INHIBIT_ENABLED:
@@ -676,9 +680,9 @@ void state_winding_down(Event event) {
             // Winding down is complete
             if ( station_get_current() <= TERMINATION_CURRENT ) {
                 signal_charge_stop_discrete();
-                chademo.weldCheckPendingSwitchOn = false;
+                //chademo.weldCheckPendingSwitchOn = false;
                 inhibit_contactor_close();
-                chademo.weldCheckCycles = 0;
+                //chademo.weldCheckCycles = 0;
             }
             break;
 
@@ -725,26 +729,29 @@ void state_weld_detection(Event event) {
 
         case E_STATION_STATUS_UPDATED:
 
+            /*
             // We're waiting for the contactors to turn on
             if ( chademo.weldCheckPendingSwitchOn ) {
                 if ( station_get_voltage() > ( bms.voltage * 0.9 ) ) {
-                    chademo.weldCheckPendingSwitchOn = false;
-                    chademo.weldCheckCycles += 1;
+                    //chademo.weldCheckPendingSwitchOn = false;
+                    //chademo.weldCheckCycles += 1;
                 }
             }
 
             // We're waiting for the contactors to turn off
             else {
                 if ( station_get_voltage() < ( bms.voltage * 0.1 ) ) {
-                    chademo.weldCheckPendingSwitchOn = true;
-                    chademo.weldCheckCycles += 1;
+                    //chademo.weldCheckPendingSwitchOn = true;
+                    //chademo.weldCheckCycles += 1;
                 }
             }
 
+            
             if ( chademo.weldCheckCycles > 3 ) {
                 // 102.5.3 high
                 state = state_plug_in;
             }
+            */
 
             break;
 

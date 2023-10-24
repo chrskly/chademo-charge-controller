@@ -273,6 +273,7 @@ uint8_t generate_battery_status_byte() {
         0x00 |
         bms.highCellAlarm |
         bms.lowCellAlarm << 1 |
+        chademo.currentDeviationError << 2 |
         bms.highTempAlarm << 3 |
         bms.cellDeltaAlarm << 4
     );
@@ -377,6 +378,41 @@ void signal_charge_stop_digital() {
 void signal_charge_stop_discrete() {
     // Disable the vehicle 'charge enable' digital signal, a.k.a CP3
     deactivate_out1();
+}
+
+
+/* Compare the current requested with the current delivered (as reported by the
+ * station). If it deviates by too much for too long, then set a flag to report
+ * an error (102.4.2).
+ */
+void check_for_current_deviation_error() {
+
+    // CHAdeMO version before v0.9
+    if ( station.controlProtocolNumber == 0 ) {
+        // If we're getting 12A more than we ask for, that's an error state
+        if ( station.outputCurrent < ( chademo.chargingCurrentRequest + 12 ) ) {
+            // reset the counter
+            chademo.currentDeviationErrorTimer = get_clock();
+        }
+    }
+
+    // CHAdeMO versions from v0.9 and up
+    else if ( station.controlProtocolNumber > 0 ) {
+        // If we're getting 12A more or less than we ask for, that's an error state
+        if ( station.outputCurrent < ( chademo.chargingCurrentRequest + 12 ) && 
+             station.outputCurrent > ( chademo.chargingCurrentRequest - 12 )) {
+            // reset the counter
+            chademo.currentDeviationErrorTimer = get_clock();
+        }
+    }
+
+    // Current has deviated for more than 5 seconds, trigger error state
+    if ( ( chademo.currentDeviationErrorTimer - get_clock() ) > 1000 ) {
+        chademo.currentDeviationError = true;
+    } else {
+        chademo.currentDeviationError = false;
+    }
+
 }
 
 

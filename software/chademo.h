@@ -29,6 +29,7 @@ void chademo_reinitialise();
 bool in_constant_current_window();
 bool in_constant_voltage_window();
 float chademo_get_target_voltage();
+void chademo_update_max_voltage_value();
 bool chademo_station_voltage_sufficient();
 void recalculate_charging_current_request();
 void ramp_down_current_request();
@@ -47,6 +48,7 @@ void signal_charge_go_ahead_digital();
 void signal_charge_go_ahead_discrete();
 void signal_charge_stop_digital();
 void signal_charge_stop_discrete();
+void check_for_current_deviation_error();
 bool error_condition();
 
 #endif
