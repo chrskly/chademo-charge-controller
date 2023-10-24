@@ -55,7 +55,12 @@
  * General CHAdemMO settings
  */
 
-// Version of ChaDeMo protocol to use. 1 == v0.9, 2 == v1.0
+/* Version of CHADeMO protocol that the vehicle will announce to the station
+ * 0 == Before 0.9
+ * 1 == v0.9 and v0.9.1
+ * 2 == v1.0.0 and v1.0.1
+ * 3 == v2.0.0 and v2.0.1
+ */
 #define CHADEMO_PROTOCOL_VERSION 1
 
 // Messages from ChaDeMo station
