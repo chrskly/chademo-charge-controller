@@ -50,11 +50,11 @@ static err_t tcp_close_client_connection(TCP_CONNECT_STATE_T *con_state, struct 
     return close_err;
 }
 
-static void tcp_server_close(TCP_SERVER_T *state) {
-    if (state->server_pcb) {
-        tcp_arg(state->server_pcb, NULL);
-        tcp_close(state->server_pcb);
-        state->server_pcb = NULL;
+static void tcp_server_close(TCP_SERVER_T *tcpState) {
+    if (tcpState->server_pcb) {
+        tcp_arg(tcpState->server_pcb, NULL);
+        tcp_close(tcpState->server_pcb);
+        tcpState->server_pcb = NULL;
     }
 }
 
@@ -197,7 +197,7 @@ static void tcp_server_err(void *arg, err_t err) {
 }
 
 static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err) {
-    TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
+    TCP_SERVER_T *tcpState = (TCP_SERVER_T*)arg;
     if (err != ERR_OK || client_pcb == NULL) {
         DEBUG_printf("failure in accept\n");
         return ERR_VAL;
@@ -211,7 +211,7 @@ static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err)
         return ERR_MEM;
     }
     con_state->pcb = client_pcb; // for checking
-    con_state->gw = &state->gw;
+    con_state->gw = &tcpState->gw;
 
     // setup connection to client
     tcp_arg(client_pcb, con_state);
@@ -224,7 +224,7 @@ static err_t tcp_server_accept(void *arg, struct tcp_pcb *client_pcb, err_t err)
 }
 
 static bool tcp_server_open(void *arg, const char *ap_name) {
-    TCP_SERVER_T *state = (TCP_SERVER_T*)arg;
+    TCP_SERVER_T *tcpState = (TCP_SERVER_T*)arg;
     DEBUG_printf("starting server on port %d\n", TCP_PORT);
 
     struct tcp_pcb *pcb = tcp_new_ip_type(IPADDR_TYPE_ANY);
@@ -239,8 +239,8 @@ static bool tcp_server_open(void *arg, const char *ap_name) {
         return false;
     }
 
-    state->server_pcb = tcp_listen_with_backlog(pcb, 1);
-    if (!state->server_pcb) {
+    tcpState->server_pcb = tcp_listen_with_backlog(pcb, 1);
+    if (!tcpState->server_pcb) {
         DEBUG_printf("failed to listen\n");
         if (pcb) {
             tcp_close(pcb);
@@ -248,13 +248,14 @@ static bool tcp_server_open(void *arg, const char *ap_name) {
         return false;
     }
 
-    tcp_arg(state->server_pcb, state);
-    tcp_accept(state->server_pcb, tcp_server_accept);
+    tcp_arg(tcpState->server_pcb, tcpState);
+    tcp_accept(tcpState->server_pcb, tcp_server_accept);
 
     printf("Try connecting to '%s' (press 'd' to disable access point)\n", ap_name);
     return true;
 }
 
+/*
 // This "worker" function is called to safely perform work when instructed by key_pressed_func
 void key_pressed_worker_func(async_context_t *context, async_when_pending_worker_t *worker) {
     assert(worker->user_data);
@@ -275,3 +276,4 @@ void key_pressed_func(void *param) {
         async_context_set_work_pending(((TCP_SERVER_T*)param)->context, &key_pressed_worker);
     }
 }
+*/
