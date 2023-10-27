@@ -13,7 +13,7 @@ set(PICO_CXX_ENABLE_EXCEPTIONS 1)
 
 pico_sdk_init()
 
-#add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/picow_http)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/lib/picow_http)
 
 add_executable(charger
         dhcpserver.h
@@ -41,11 +41,15 @@ add_executable(charger
         util.c
         util.h
         mcp2515/mcp2515.cpp
+        wifi.c
+        wifi.h
         )
 
 target_include_directories(charger PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts
+        ${CMAKE_CURRENT_LIST_DIR}/lib/picow_http/include
+        ${CMAKE_CURRENT_LIST_DIR}/lib/picow_http/src
         )
 
 target_compile_definitions(charger PRIVATE
@@ -58,11 +62,5 @@ target_link_libraries(charger
         pico_stdlib
         hardware_spi
         )
-
-#picow_http_gen_handlers(charger
-#        ${CMAKE_CURRENT_SOURCE_DIR}/www.yaml
-#        ${CMAKE_CURRENT_SOURCE_DIR}/www
-#        ${CMAKE_CURRENT_SOURCE_DIR}/www/index.html
-#        )
 
 pico_add_extra_outputs(charger)
