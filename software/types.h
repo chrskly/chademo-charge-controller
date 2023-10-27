@@ -195,6 +195,12 @@ typedef struct {
     bool currentDeviationError;
     clock_t currentDeviationErrorTimer;
 
+    /* Track whether "Present output voltage" reported by the station and the
+     * voltage measured by the bms (shunt) are within +/- 10V.
+     */
+    bool voltageDeviationError;
+    clock_t voltageDeviationErrorTimer;
+
 } Chademo;
 
 

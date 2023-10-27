@@ -255,7 +255,7 @@ void state_handshaking(Event event) {
 
             if ( station_is_reporting_station_malfunction() ) {
                 disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting station malfunction\n");
+                printf("Switching to state : error, reason : station reporting station malfunction (electrical, connector lock, or emergency stop button)\n");
                 state = state_error;
                 break;
             }
@@ -269,7 +269,7 @@ void state_handshaking(Event event) {
 
             if ( station_is_reporting_charging_system_malfunction() ) {
                 disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                printf("Switching to state : error, reason : station reporting 'Charging system malfunction'\n");
                 state = state_error;
                 break;
             }
@@ -356,7 +356,7 @@ void state_await_connector_lock(Event event) {
 
             if ( station_is_reporting_station_malfunction() ) {
                 disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting station malfunction\n");
+                printf("Switching to state : error, reason : station reporting station malfunction (electrical, connector lock, or emergency stop button)\n");
                 state = state_error;
                 break;
             }
@@ -370,7 +370,7 @@ void state_await_connector_lock(Event event) {
 
             if ( station_is_reporting_charging_system_malfunction() ) {
                 disable_send_outbound_CAN_messages();
-                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                printf("Switching to state : error, reason : station reporting 'Charging system malfunction'\n");
                 state = state_error;
                 break;
             }
@@ -477,7 +477,7 @@ void state_await_insulation_test(Event event) {
         case E_STATION_STATUS_UPDATED:
 
             if ( station_is_reporting_station_malfunction() ) {
-                printf("Switching to state : error, reason : station reporting station malfunction\n");
+                printf("Switching to state : error, reason : station reporting station malfunction (electrical, connector lock, or emergency stop button)\n");
                 signal_charge_stop_digital();
                 state = state_error;
                 break;
@@ -491,7 +491,7 @@ void state_await_insulation_test(Event event) {
             }
 
             if ( station_is_reporting_charging_system_malfunction() ) {
-                printf("Switching to state : error, reason : station reporting system malfunction\n");
+                printf("Switching to state : error, reason : station reporting 'Charging system malfunction'\n");
                 signal_charge_stop_digital();
                 state = state_error;
                 break;
@@ -599,7 +599,7 @@ void state_energy_transfer(Event event) {
             }
 
             if ( station_is_reporting_station_malfunction() ) {
-                printf("Switching to state : winding_down, reason : station reporting station malfunction\n");
+                printf("Switching to state : winding_down, reason : station reporting station malfunction (electrical, connector lock, or emergency stop button)\n");
                 signal_charge_stop_digital();
                 state = state_winding_down;
                 break;
@@ -613,7 +613,7 @@ void state_energy_transfer(Event event) {
             }
 
             if ( station_is_reporting_charging_system_malfunction() ) {
-                printf("Switching to state : winding_down, reason : station reporting system malfunction\n");
+                printf("Switching to state : winding_down, reason : station reporting 'Charging system malfunction'\n");
                 signal_charge_stop_digital();
                 state = state_winding_down;
                 break;

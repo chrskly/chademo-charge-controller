@@ -42,7 +42,6 @@ void chademo_reinitialise() {
     // Vehicle status flags
     chademo.vehicleChargingEnabled = false;
     chademo.vehicleNotInPark = false;
-    chademo.vehicleChargingSystemFault = false;
     chademo.vehicleRequestingStop = false;
 
     // Set the target state-of-charge and voltage
@@ -275,7 +274,7 @@ uint8_t generate_battery_status_byte() {
         bms.lowCellAlarm << 1 |
         chademo.currentDeviationError << 2 |
         bms.highTempAlarm << 3 |
-        bms.cellDeltaAlarm << 4
+        chademo.voltageDeviationError << 4
     );
 }
 
@@ -294,7 +293,7 @@ uint8_t generate_vehicle_status_byte() {
         0x00 |
         chademo.vehicleChargingEnabled |           // "charge permission"
         chademo.vehicleNotInPark << 1 |
-        chademo.vehicleChargingSystemFault << 2 |
+        charging_system_fault_present() << 2 |     // "Charging system fault"
         contactors_are_allowed_to_close() << 3 |   // "vehicle status"
         chademo.vehicleRequestingStop << 4
     );
@@ -381,6 +380,11 @@ void signal_charge_stop_discrete() {
 }
 
 
+/*
+ * Error checking
+ */
+
+
 /* Compare the current requested with the current delivered (as reported by the
  * station). If it deviates by too much for too long, then set a flag to report
  * an error (102.4.2).
@@ -415,5 +419,28 @@ void check_for_current_deviation_error() {
 
 }
 
+/* Compare the voltage the that charger says its outputting with the voltage
+ * that we actually measure. If it deviates by +/- 10V for more than 5 seconds
+ * then that's an error.
+ */
+void check_for_voltage_deviation_error() {
+    // Reset the counter
+    if ( ( bms.measuredVoltage < ( station.outputVoltage + 10 ) ) &&
+         ( bms.measuredVoltage > ( station.outputVoltage - 10 ) ) ) {
+        chademo.voltageDeviationErrorTimer = get_clock();
+    }
+    // Flag the fault if the deviation has been happening for > 5 secs
+    if ( chademo.voltageDeviationErrorTimer < ( get_clock() - 5000 ) ) {
+        chademo.voltageDeviationError = true;
+    }
+}
 
-
+/* Return true if any of the 102.5.2 faults are occurring. They are:
+ *   - Station timed-out doing something
+ *   - Timeout receiving data from station over CAN
+ *   - Any other fault originating in the station detected by the vehicle
+ *   - Any other fault originating in the vehicle detected by the vehicle
+ */
+bool charging_system_fault_present() {
+    return ( !station_is_alive() || !bms_is_alive() );
+}

@@ -49,6 +49,7 @@ void signal_charge_go_ahead_discrete();
 void signal_charge_stop_digital();
 void signal_charge_stop_discrete();
 void check_for_current_deviation_error();
-bool error_condition();
+void check_for_voltage_deviation_error();
+bool charging_system_fault_present();
 
 #endif
