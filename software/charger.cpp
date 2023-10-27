@@ -405,11 +405,6 @@ int main() {
 
     tcpState->complete = false;
 
-    /*
-    while(true) {
-        sleep_ms(1000);
-    }
-    */
     while(!tcpState->complete) {
         cyw43_arch_poll();
         cyw43_arch_wait_for_work_until(make_timeout_time_ms(1000));
