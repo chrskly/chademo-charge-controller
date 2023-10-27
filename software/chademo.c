@@ -247,7 +247,7 @@ uint8_t get_charging_current_request() {
 //
 
 void recalculate_charging_time() {
-    if ( CALCULATE_TIME_REMAINING_BASED_ON == 'wh' ) {
+    if ( strcmp(CALCULATE_TIME_REMAINING_BASED_ON, "wh") == 0 ) {
         battery_recalculate_charging_time_minutes_by_wh(chademo.chargingCurrentRequest, chademo.targetSoc);
     } else {
         battery_recalculate_charging_time_minutes_by_ah(chademo.chargingCurrentRequest, chademo.targetSoc);
