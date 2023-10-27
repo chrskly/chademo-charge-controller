@@ -50,33 +50,8 @@ extern "C" {
 #include "charger.h"
 
 #include "types.h"
+#include "wifi.h"
 
-#define TCP_PORT 80
-#define POLL_TIME_S 5
-#define HTTP_GET "GET"
-#define HTTP_RESPONSE_HEADERS "HTTP/1.1 %d OK\nContent-Length: %d\nContent-Type: text/html; charset=utf-8\nConnection: close\n\n"
-#define LED_TEST_BODY "<html><body><h1>Hello from Pico W.</h1><p>Led is %s</p><p><a href=\"?led=%d\">Turn led %s</a></body></html>"
-#define LED_PARAM "led=%d"
-#define LED_TEST "/ledtest"
-#define LED_GPIO 0
-#define HTTP_RESPONSE_REDIRECT "HTTP/1.1 302 Redirect\nLocation: http://%s" LED_TEST "\n\n"
-
-typedef struct TCP_SERVER_T_ {
-    struct tcp_pcb *server_pcb;
-    bool complete;
-    ip_addr_t gw;
-    async_context_t *context;
-} TCP_SERVER_T;
-
-typedef struct TCP_CONNECT_STATE_T_ {
-    struct tcp_pcb *pcb;
-    int sent_len;
-    char headers[128];
-    char result[256];
-    int header_len;
-    int result_len;
-    ip_addr_t *gw;
-} TCP_CONNECT_STATE_T;
 
 MCP2515 mainCAN(SPI_PORT, MAIN_CAN_CS, SPI_MISO, SPI_MOSI, SPI_CLK, 500000);
 MCP2515 chademoCAN(SPI_PORT, CHADEMO_CAN_CS, SPI_MISO, SPI_MOSI, SPI_CLK, 500000);
@@ -89,7 +64,6 @@ BMS bms;
 Battery battery;
 StatusLED led;
 Chademo chademo;
-
 
 
 // Watchdog
