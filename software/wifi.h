@@ -14,6 +14,11 @@
 #define LED_GPIO 0
 #define HTTP_RESPONSE_REDIRECT "HTTP/1.1 302 Redirect\nLocation: http://%s" LED_TEST "\n\n"
 
+#define CSS ""
+
+// Main page
+#define MAIN_PAGE_URL "/"
+
 
 typedef struct TCP_SERVER_T_ {
     struct tcp_pcb *server_pcb;
@@ -31,5 +36,8 @@ typedef struct TCP_CONNECT_STATE_T_ {
     int result_len;
     ip_addr_t *gw;
 } TCP_CONNECT_STATE_T;
+
+
+bool tcp_server_open(void *arg, const char *ap_name);
 
 #endif

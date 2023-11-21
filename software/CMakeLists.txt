@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27.1)
+cmake_minimum_required(VERSION 3.27)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -48,8 +48,6 @@ add_executable(charger
 target_include_directories(charger PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts
-        ${CMAKE_CURRENT_LIST_DIR}/lib/picow_http/include
-        ${CMAKE_CURRENT_LIST_DIR}/lib/picow_http/src
         )
 
 target_compile_definitions(charger PRIVATE
