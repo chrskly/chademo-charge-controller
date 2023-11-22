@@ -78,8 +78,7 @@ static int generate_content(const char *request, const char *params, char *resul
     // Main page
     if (strncmp(request, MAIN_PAGE_URL, sizeof(MAIN_PAGE_URL) - 1) == 0 ) {
         printf("Request to main page\n");
-        //len = snprintf(result, max_result_len, MAIN_PAGE_BODY, "1");
-        len = snprintf(result, max_result_len, main_page_body, "1");
+        len = snprintf(result, max_result_len, MAIN_PAGE_BODY, "1");
     }
     /*
     else {
