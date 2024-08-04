@@ -27,6 +27,22 @@ function showTab(tabId, buttonId) {
     document.getElementById(buttonId).classList.add('nav-active');
 }
 
+function showBatteryTab(tabId, buttonId) {
+    // Switch the tab
+    var batteryTabs = document.querySelectorAll('.battery-subtab');
+    batteryTabs.forEach(function(item) {
+        console.log("Hiding " + item);
+        item.classList.add('hidden');
+    });
+    var tab = document.getElementById(tabId);
+    tab.classList.remove('hidden');
+    // Update the active button
+    document.querySelectorAll('.battery-nav-button').forEach(function(item) {
+        item.classList.remove('battery-nav-active');
+    });
+    document.getElementById(buttonId).classList.add('battery-nav-active');
+}
+
 function showChargeTab(tabId, buttonId) {
     var chargeTabs = document.querySelectorAll('.charge-tab');
     chargeTabs.forEach(function(item) {
@@ -41,5 +57,5 @@ function showChargeTab(tabId, buttonId) {
 }
 
 function showVoltageTemperatureTab(){
-    
+
 }

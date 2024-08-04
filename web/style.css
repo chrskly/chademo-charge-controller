@@ -140,13 +140,69 @@ p {
     border-radius: 10px;
 }
 
-/* ---------- BATTERY STATUS ---------- */
+/* ---------- Battery Nav ---------- */
+
+.battery-nav {
+    grid-column: 1 / span 4;
+    grid-row: 1;
+    background-color: #232D3F;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 0 0 20px 0;
+}
+
+.battery-nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.battery-nav li {
+    float: left;
+    width: 33%;
+    text-align: center;
+    font-size: 2.8em;
+    font-weight: 700;
+    color: white;
+    padding: 20px 0 20px 0;
+}
+
+.battery-nav-active {
+    background-color: #434D5F;
+    border-radius: 10px;
+}
+
+/* ---------- Battery wrapper ---------- */
+
+#battery-status-wrapper {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+    /* display: grid; */
+    grid-template-columns: 100%;
+}
+
+#battery-history-wrapper {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+    /* display: grid; */
+    grid-template-columns: 100%;
+}
+
+#battery-settings-wrapper {
+    grid-column: 1 / span 4;
+    grid-row: 2;
+    /* display: grid; */
+    grid-template-columns: 100%;
+}
+
+/* ---------- BATTERY SUMMARY ---------- */
 
 .battery-status {
     display: grid;
     grid-template-columns: 50% 50%;
     grid-column: 1 / span 4;
-    grid-row: 1;
+    grid-row: 2;
     background-color: #232D3F;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -198,7 +254,7 @@ p {
     grid-column: 1 / 5;
     grid-template-columns: 33% 33% 33%;
     display: grid;
-    grid-row: 2;
+    grid-row: 3;
     background-color: #232D3F;
     border-radius: 10px;
     padding: 10px 0 30px 0;
@@ -224,7 +280,7 @@ p {
 
 .pack-nav {
     grid-column: 1 / span 4;
-    grid-row: 3;
+    grid-row: 4;
     background-color: #232D3F;
     border-radius: 10px;
     padding: 10px;
@@ -256,7 +312,7 @@ p {
 
 .voltage-temperature-nav {
     grid-column: 1 / span 4;
-    grid-row: 4;
+    grid-row: 5;
     background-color: #232D3F;
     border-radius: 10px;
     padding: 10px;
@@ -289,7 +345,7 @@ p {
 /* ---------- Cell Voltages ---------- */
 
 .cell-voltages {
-    grid-row: 5;
+    grid-row: 6;
     grid-column: 1 / span 4;
     display: grid;
     grid-template-columns: 50% 50%;
